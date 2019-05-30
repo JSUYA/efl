@@ -666,6 +666,7 @@ EFL_START_TEST(evas_object_image_cached_data_comparision)
    const uint32_t *d2, *n_d2;
    const char *img_path, *img_path2;
    Evas_Object *img, *img2;
+   Eina_Rect zone;
 
    Evas *e = _setup_evas();
 
@@ -727,6 +728,14 @@ EFL_START_TEST(evas_object_image_cached_data_comparision)
         fail_if(w2 != n_w2 || h2 != n_h2);
         fail_if(memcmp(d2, n_d2, w2 * h2 * 4));
      }
+
+   zone = efl_gfx_image_content_zone_get(img);
+   fail_if(!(zone.x == 0 && zone.y == 0 &&
+             zone.w == 250 && zone.h == 250));
+   efl_gfx_image_border_set(img, 7, 14, 5, 10);
+   zone = efl_gfx_image_content_zone_get(img);
+   fail_if(!(zone.x == 7 && zone.y == 5 &&
+             (zone.w == 250 - 7 - 14) && (zone.h == 250 - 5 - 10)));
 }
 EFL_END_TEST
 
