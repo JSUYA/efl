@@ -655,6 +655,9 @@ _file_to_memory(const char *filename, char **result)
    return size;
 }
 
+static const Efl_Gfx_Image_Stretch_Zone hsz[] = { { 8, 8 }, { 16, 555 } };
+static const Efl_Gfx_Image_Stretch_Zone vsz[] = { { 8, 8 }, { 16, 512 } };
+
 EFL_START_TEST(evas_object_image_cached_data_comparision)
 {
    int i;
@@ -736,6 +739,12 @@ EFL_START_TEST(evas_object_image_cached_data_comparision)
    zone = efl_gfx_image_content_zone_get(img);
    fail_if(!(zone.x == 7 && zone.y == 5 &&
              (zone.w == 250 - 7 - 14) && (zone.h == 250 - 5 - 10)));
+
+   efl_gfx_image_stretch_zone_set(img, EINA_C_ARRAY_ITERATOR_NEW(hsz),
+                                  EINA_C_ARRAY_ITERATOR_NEW(vsz));
+   zone = efl_gfx_image_content_zone_get(img);
+   fail_if(!(zone.x == 8 && zone.y == 8 &&
+             zone.w == 120 && zone.h == 77));
 }
 EFL_END_TEST
 
