@@ -98,6 +98,9 @@ struct _Evas_Object_Image_State
    Eina_Bool      has_alpha :1;
    Eina_Bool      opaque_valid : 1;
    Eina_Bool      opaque : 1;
+
+   Eina_Bool      free_stretch : 1;
+   Eina_Bool      stretch_loaded : 1;
 };
 
 #define EVAS_IMAGE_PRELOAD_NONE 0x00

@@ -223,6 +223,7 @@ _evas_image_file_header(Evas_Module *em, Image_Entry *ie, int *error)
              ie->borders.b = property.generic.borders.b;
              ie->scale = property.generic.scale;
              ie->flags.alpha = property.generic.alpha;
+             ie->need_data = property.need_data;
              if (property.generic.cspaces) ie->cspaces = property.generic.cspaces;
              ie->flags.rotated = property.generic.rotated;
              ie->flags.flipped = property.generic.flipped;
@@ -470,7 +471,17 @@ end:
         return EVAS_LOAD_ERROR_RESOURCE_ALLOCATION_FAILED;
      }
 
-   evas_image_load_func->file_data(ie->loader_data, &property, pixels, &ret);
+   if (ie->need_data)
+     {
+        evas_image_load_func->file_head_with_data(ie->loader_data, &property, pixels, &ret);
+        memcpy(&ie->content, &property.content, sizeof (Eina_Rectangle));
+        ie->stretch.horizontal.zone = property.stretch.horizontal.zone;
+        ie->stretch.vertical.zone = property.stretch.vertical.zone;
+     }
+   else
+     {
+        evas_image_load_func->file_data(ie->loader_data, &property, pixels, &ret);
+     }
 
    ie->flags.alpha_sparse = property.generic.alpha_sparse;
 
