@@ -340,6 +340,14 @@ struct klass
      if(!name_helpers::close_namespaces(sink, cls.namespaces, context))
        return false;
 
+     if(!as_generator
+        ("public static class " << (string % "_") << name_helpers::klass_inherit_name(cls)
+         << "_ExtensionMethods {\n"
+         << *((scope_tab << property_extension_method_definition(cls)) << "\n")
+         << "}\n")
+        .generate(sink, std::make_tuple(cls.namespaces, cls.properties), context))
+     return false;
+
      return true;
    }
 
@@ -499,7 +507,7 @@ struct klass
                      // For constructors with arguments, the parent is also required, as optional parameters can't come before non-optional paramenters.
                      << scope_tab << "public " << inherit_name << "(Efl.Object parent" << ((constructors.size() > 0) ? "" : "= null") << "\n"
                      << scope_tab << scope_tab << scope_tab << *(", " << constructor_param ) << ") : "
-                             << "base(" << name_helpers::klass_get_name(cls) <<  "(), typeof(" << inherit_name << "), parent)\n"
+                             << "base(" << name_helpers::klass_get_name(cls) <<  "(), typeof(" << inherit_name << "), parent, false)\n"
                      << scope_tab << "{\n"
                      << (*(scope_tab << scope_tab << constructor_invocation << "\n"))
                      << scope_tab << scope_tab << "FinishInstantiation();\n"
@@ -541,7 +549,7 @@ struct klass
                  << scope_tab << "/// <param name=\"baseKlass\">The pointer to the base native Eo class.</param>\n"
                  << scope_tab << "/// <param name=\"managedType\">The managed type of the public constructor that originated this call.</param>\n"
                  << scope_tab << "/// <param name=\"parent\">The Efl.Object parent of this instance.</param>\n"
-                 << scope_tab << "protected " << inherit_name << "(IntPtr baseKlass, System.Type managedType, Efl.Object parent) : base(baseKlass, managedType, parent)\n"
+                 << scope_tab << "protected " << inherit_name << "(IntPtr baseKlass, System.Type managedType, Efl.Object parent, bool forceNoInherit) : base(baseKlass, managedType, parent, forceNoInherit)\n"
                  << scope_tab << "{\n"
                  << scope_tab << "}\n\n"
               ).generate(sink, attributes::unused, context);

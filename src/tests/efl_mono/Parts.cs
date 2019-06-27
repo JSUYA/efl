@@ -39,6 +39,24 @@ public static class TestParts
     }
 }
 
+public static class TestDynamicParts
+{
+    private class DynamicChild : Dummy.TestObject
+    {
+        public string this[string key]
+        {
+            get { return ""; }
+            //set { dictionary[key] = value == null ? null : value.Trim(); }
+        }
+    }
+
+    public static void dynamic_parts()
+    {
+        var t = new DynamicChild();
+        var s = t["a"];
+    }
+}
+
 #endif
 
 }

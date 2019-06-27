@@ -72,10 +72,11 @@ public abstract class EoWrapper : IWrapper, IDisposable
     /// <param name="file">Name of the file from where the constructor is called.</param>
     /// <param name="line">Number of the line from where the constructor is called.</param>
     protected EoWrapper(IntPtr baseKlass, System.Type managedType, Efl.Object parent,
+                        bool forceNoInherit=false,
                         [CallerFilePath] string file = null,
                         [CallerLineNumber] int line = 0)
     {
-        generated = ((object)this).GetType() == managedType;
+        generated = forceNoInherit ? true : (((object)this).GetType() == managedType);
         IntPtr actual_klass = baseKlass;
         if (!generated)
         {
