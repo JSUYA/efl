@@ -24,7 +24,7 @@ examples += ['ecore_fd_handler_gnutls_example']
 endif
 
 foreach example : examples
-  executable(example, example + '.c', dependencies: [eina, ecore, ecore_file, gnutls])
+  executable(example, example + '.c', dependencies: [eina, ecore, ecore_file])
 endforeach
 
 if get_option('gstreamer') == true
