@@ -24,8 +24,10 @@ endforeach
 
 gnutls = dependency('gnutls', required : false)
 if gnutls.found()
-  examples = ['ecore_fd_handler_gnutls_example']
-  executable(example, example + '.c', dependencies: [eina, ecore, ecore_file, gnutls])
+  examples = ['ecore_fd_handler_gnutls_example',]
+  foreach example : examples
+    executable(example, example + '.c', dependencies: [eina, ecore, ecore_file, gnutls])
+  endforeach
 endif
 
 if get_option('gstreamer') == true
