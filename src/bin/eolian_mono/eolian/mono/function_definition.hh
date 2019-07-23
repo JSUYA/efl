@@ -250,11 +250,22 @@ struct property_extension_method_definition_generator
 
       if (property.setter.is_engaged())
         {
+          auto cls_name = name_helpers::klass_full_concrete_or_interface_name(cls);
           attributes::type_def prop_type = property.setter->parameters[0].type;
-          if (!as_generator("public static Efl.Bindable<" << type(true) << "> " << managed_name << "<T>(this Efl.Ui.ItemFactory<T> fac) where T : " << name_helpers::klass_full_concrete_or_interface_name(cls) <<  " {\n"
+          if (!as_generator("public static Efl.Bindable<" << type(true) << "> " << managed_name << "<T>(this Efl.Ui.ItemFactory<T> fac) where T : " << cls_name <<  " {\n"
                             << scope_tab << scope_tab << "return new Efl.Bindable<" << type(true) << ">(\"" << property.name << "\", fac);\n"
                             << scope_tab << "}\n"
                             ).generate(sink, std::make_tuple(prop_type, prop_type), context))
+            return false;
+
+          // FIXME Generate below only for parts
+
+          if (!as_generator(
+                            scope_tab << "public static Efl.Bindable<" << type(true) << "> " << managed_name << "<T>(this Efl.BindablePart<T> part) where T : " << cls_name << "\n"
+                            << scope_tab << "{\n"
+                            << scope_tab << scope_tab << "return new Efl.Bindable<" << type(true) << ">(\"" << property.name << "\", part.binder);\n"
+                            << scope_tab << "}\n"
+                      ).generate(sink, std::make_tuple(prop_type, prop_type), context))
             return false;
         }
 

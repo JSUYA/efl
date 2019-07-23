@@ -39,6 +39,29 @@ public static class TestParts
     }
 }
 
+public static class TestMVVMParts
+{
+    public static void mvvm_dynamic_parts()
+    {
+        string propertyBound = null;
+        bool callbackCalled = false;
+
+        var factory = new Efl.Ui.ItemFactory<Efl.Ui.Button>();
+
+        factory.PropertyBoundEvt += (object sender, Efl.Ui.IPropertyBindPropertyBoundEvt_Args args) => {
+            propertyBound = args.arg;
+            callbackCalled = true;
+        };
+
+        var bindablePart = factory.ShadowPart();
+
+        bindablePart.Grow().Bind("Radius");
+
+        Test.Assert(callbackCalled, "Part property bound callback must have been called.");
+        Test.AssertEquals(propertyBound, "text");
+    }
+}
+
 #endif
 
 }
