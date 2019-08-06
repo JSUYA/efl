@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageId>Efl.Csharp</PackageId>
+    <Version>@EFL_VERSION@</Version>
+    <Authors>EFL Team</Authors>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+  </PropertyGroup>
+
+  <!-- <PropertyGroup Condition="'$(BuildType)'=='Beta'"> -->
+  <PropertyGroup>
+    <DefineConstants>EFL_BETA</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="@BINDING_SRC@/efl_mono/*.cs" />
+    <!-- FIXME Windows support -->
+    <Compile Include="@BINDING_SRC@/eo_mono/*.cs" Exclude="@BINDING_SRC@/eo_mono/*Windows.cs" />
+    <Compile Include="@BINDING_SRC@/eina_mono/*.cs" />
+    <Compile Include="@BINDING_SRC@/eolian_mono/*.cs" />
+    <Compile Include="@BINDING_SRC@/eldbus_mono/*.cs" />
+  </ItemGroup>
+
+</Project>

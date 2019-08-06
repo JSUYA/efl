@@ -3,31 +3,6 @@ add_languages('cs')
 
 runtime_assemblies = []
 
-# Check if we should use dotnet options
-cs_is_dotnet = meson.get_compiler('cs').get_id().contains('dotnet')
-
-if (cs_is_dotnet)
-
-warning('Dotnet support is still not upstream in meson.')
-
-runtime_assemblies += [
-    '-r:System.Console.dll',
-    '-r:Microsoft.CSharp.dll',
-    '-r:System.Collections.dll',
-    '-r:System.Collections.Concurrent.dll',
-    '-r:System.ComponentModel.Primitives.dll',
-    '-r:System.ComponentModel.Primitives.dll',
-    '-r:System.Diagnostics.Debug.dll',
-    '-r:System.Diagnostics.TraceSource.dll',
-    '-r:System.Dynamic.Runtime.dll',
-    '-r:System.Linq.dll',
-    '-r:System.Runtime.dll',
-    '-r:System.Runtime.Extensions.dll',
-    '-r:System.Security.dll',
-]
-
-endif
-
 mono_sublibs = [
   ['Eina',        true, ], #
   ['Eolian',      true, ], #
@@ -144,41 +119,66 @@ endif
 efl_mono_install_dir = join_paths(dir_lib, 'efl-mono-'+version_major)
 efl_mono_xml_doc = join_paths(meson.current_build_dir(), 'efl_mono.xml')
 
-efl_mono = library('efl_mono',
-    mono_generator_target + mono_files + [efl_src],
-    install : true,
-    install_dir : efl_mono_install_dir,
-    cs_args : extra_cs_args + ['-doc:' + efl_mono_xml_doc, '-warnaserror+']
-)
+if (get_option('dotnet'))
+  dotnet = find_program('dotnet')
+  warning('Dotnet support is still experimental.')
 
-meson.add_install_script(join_paths(meson.source_root(), 'meson', 'meson_csharp_docs.sh'),
-                         efl_mono_xml_doc,
-                         efl_mono_install_dir)
+  lib_csproj_conf_data = configuration_data()
 
-nuget = find_program('nuget', required: false)
+  lib_csproj_conf_data.set('BINDING_SRC', meson.current_source_dir())
+  lib_csproj_conf_data.set('EFL_VERSION', meson.project_version())
 
-if nuget.found()
+  lib_csproj = configure_file(input: 'efl_sharp.csproj.in',
+                              output: 'efl_sharp.csproj',
+                              configuration: lib_csproj_conf_data)
 
-  nuget_conf_data = configuration_data()
-
-  nuget_conf_data.set('EFL_VERSION', meson.project_version())
-
-  nuget_nuspec = configure_file(input : 'efl_mono.dll.nuspec.in',
-                                output : 'efl_mono.dll.nuspec',
-                                configuration : nuget_conf_data)
-
-  nuget_pkg = 'Efl.Csharp.' + meson.project_version() + '.nupkg'
-
-  nuget_pack = custom_target('nuget_pack',
-      input: nuget_nuspec,
-      output: nuget_pkg,
-      build_by_default: true,
-      depends: efl_mono,
-      command: [nuget, 'pack', '-OutputDirectory', meson.current_build_dir(), '@INPUT@']
+  efl_mono = custom_target('efl_mono',
+    input: mono_generator_target + mono_files + [efl_src],
+    # FIXME -Dbuildtype=release
+    # FIXME shouldn't it be efl_mono.dll?
+    output: 'efl_sharp.dll',
+    build_by_default: true,
+    command: [dotnet, 'pack', lib_csproj],
   )
 
 else
-  warning('Nuget package generation disabled')
+
+  efl_mono = library('efl_mono',
+      mono_generator_target + mono_files + [efl_src],
+      install : true,
+      install_dir : efl_mono_install_dir,
+      cs_args : extra_cs_args + ['-doc:' + efl_mono_xml_doc, '-warnaserror+']
+  )
+
+  meson.add_install_script(join_paths(meson.source_root(), 'meson', 'meson_csharp_docs.sh'),
+                           efl_mono_xml_doc,
+                           efl_mono_install_dir)
+
+  nuget = find_program('nuget', required: false)
+
+  if nuget.found()
+
+    nuget_conf_data = configuration_data()
+
+    nuget_conf_data.set('EFL_VERSION', meson.project_version())
+
+    nuget_nuspec = configure_file(input : 'efl_mono.dll.nuspec.in',
+                                  output : 'efl_mono.dll.nuspec',
+                                  configuration : nuget_conf_data)
+
+    nuget_pkg = 'Efl.Csharp.' + meson.project_version() + '.nupkg'
+
+    nuget_pack = custom_target('nuget_pack',
+        input: nuget_nuspec,
+        output: nuget_pkg,
+        build_by_default: true,
+        depends: efl_mono,
+        command: [nuget, 'pack', '-OutputDirectory', meson.current_build_dir(), '@INPUT@']
+    )
+
+  else
+    warning('Nuget package generation disabled')
+  endif
 endif
 
 efl_mono_test_suite_path=join_paths(meson.current_build_dir())
