@@ -155,6 +155,32 @@ meson.add_install_script(join_paths(meson.source_root(), 'meson', 'meson_csharp_
                          efl_mono_xml_doc,
                          efl_mono_install_dir)
 
+nuget = find_program('nuget', required: false)
+
+if nuget.found()
+
+  nuget_conf_data = configuration_data()
+
+  nuget_conf_data.set('EFL_VERSION', meson.project_version())
+
+  nuget_nuspec = configure_file(input : 'efl_mono.dll.nuspec.in',
+                                output : 'efl_mono.dll.nuspec',
+                                configuration : nuget_conf_data)
+
+  nuget_pkg = 'Efl.Csharp.' + meson.project_version() + '.nupkg'
+
+  nuget_pack = custom_target('nuget_pack',
+      input: nuget_nuspec,
+      output: nuget_pkg,
+      build_by_default: true,
+      depends: efl_mono,
+      command: [nuget, 'pack', '-OutputDirectory', meson.current_build_dir(), '@INPUT@']
+  )
+
+else
+  warning('Nuget package generation disabled')
+endif
+
 efl_mono_test_suite_path=join_paths(meson.current_build_dir())
 
 pkgconfig.generate(
