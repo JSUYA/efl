@@ -142,6 +142,9 @@ class Efl.Ui.Win extends Efl.Ui.Widget implements Efl.Canvas.Scene, Efl.Access.W
 {
    [[Efl UI window class.
 
+     This class does not obey @Efl.Gfx.Hint.hint_size_max and instead sets its own maximum size
+     hints based on the values set on the window's content object.
+
      @since 1.22
    ]]
    methods {
