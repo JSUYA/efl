@@ -301,6 +301,15 @@ _efl_ui_mi_controller_efl_object_constructor(Eo *obj,
    return obj;
 }
 
+Efl_Canvas_Vg_Node *
+_efl_ui_mi_controller_keypath_node_get(Eo *obj, Efl_Ui_Mi_Controller_Data *pd, const char *keypath)
+{
+  Eo *vg = efl_key_data_get(pd->anim, "vg_obj");
+  printf("KTH efl_ui_mi_controller_keypath_node_get vg obj:%p\n", vg);
+  return efl_canvas_vg_object_keypath_node_get(vg, keypath);
+}
+
+
 /* Efl.Part begin */
 /*ELM_PART_OVERRIDE_CONTENT_SET(efl_ui_mi_controller, EFL_UI_MI_CONTROLLER, Efl_Ui_Mi_Controller_Data)
 ELM_PART_OVERRIDE_CONTENT_GET(efl_ui_mi_controller, EFL_UI_MI_CONTROLLER, Efl_Ui_Mi_Controller_Data)
