@@ -200,10 +200,8 @@ EOLIAN static Eina_Rect
 _efl_canvas_vg_node_efl_gfx_entity_geometry_get(const Eo *obj, Efl_Canvas_Vg_Node_Data *pd EINA_UNUSED)
 {
    Eina_Rect r;
-//   r.pos = efl_gfx_entity_position_get(obj);
-//   r.size = efl_gfx_entity_size_get(obj);
-
-   efl_gfx_path_bounds_get(obj, &r);
+   r.pos = efl_gfx_entity_position_get(obj);
+   r.size = efl_gfx_entity_size_get(obj);
    return r;
 }
 

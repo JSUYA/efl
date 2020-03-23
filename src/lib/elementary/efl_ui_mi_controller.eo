@@ -73,12 +73,6 @@ class @beta Efl.Ui.Mi_Controller extends Efl.Ui.Widget implements Efl.File, Efl.
             value_provider: Efl.Gfx.Vg.Value_Provider;
          }
       }
-      keypath_node_get {
-         params {
-           @in keypath: string;
-         }
-         return: Efl.Canvas.Vg.Node;
-      }
    }
    implements {
       Efl.Object.constructor;

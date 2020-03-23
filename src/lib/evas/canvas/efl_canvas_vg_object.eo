@@ -81,12 +81,6 @@ class @beta Efl.Canvas.Vg.Object extends Efl.Canvas.Object implements Efl.File, 
          }
          return: list<Efl.Object>;
       }
-      keypath_node_get {
-         params {
-            keypath: string;
-         }
-         return: Efl.Canvas.Vg.Node;
-      }
    }
    implements {
       Efl.Object.constructor;

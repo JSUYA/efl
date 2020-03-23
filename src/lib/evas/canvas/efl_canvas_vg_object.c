@@ -1061,39 +1061,6 @@ _efl_canvas_vg_object_list_by_keypath_get(Eo *obj, Efl_Canvas_Vg_Object_Data *pd
    return NULL;
 }
 
-EOLIAN Efl_VG*
-_efl_canvas_vg_object_keypath_node_get(Eo *obj, Efl_Canvas_Vg_Object_Data *pd, const char *keypath)
-{
-   Efl_VG *key_node = NULL;
-   char buf[256];
-   //evas_cache_vg_keypath_node_get(pd->vg_entry, keypath);
-   Efl_VG *vg = evas_cache_vg_tree_get(pd->vg_entry, pd->frame_idx);
-
-   Eina_List *list = efl_canvas_vg_container_children_direct_get(vg);
-   Eina_List *l, *ll, *llist;
-   Efl_VG *layer, *node;
-   printf("KTH ====================================\n");
-   EINA_LIST_FOREACH(list, l, layer)
-   {
-     char *layer_keypath = efl_key_data_get(layer, "_lot_node_name");
-     Eina_List *llist = efl_canvas_vg_container_children_direct_get(layer);
-     EINA_LIST_FOREACH(llist, ll, node)
-     {
-        char *shape_keypath = efl_key_data_get(node, "_lot_node_name");
-        snprintf(buf, sizeof(buf), "%s %s", layer_keypath, shape_keypath);
-        printf("KTH total key path:%s\n", buf);
-        if (!strcmp(buf, keypath))
-          {
-             printf("KTH matched keypath is : %s\n", buf);
-             key_node = node;
-          }
-        }
-      }
-   printf("KTH ====================================\n");
-
-   return key_node;
-}
-
 /* the actual api call to add a vector graphic object */
 EAPI Eo *
 evas_object_vg_add(Evas *e)
