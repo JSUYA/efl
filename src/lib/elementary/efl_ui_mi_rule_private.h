@@ -9,6 +9,7 @@ typedef struct _Efl_Ui_Mi_Rule_Data Efl_Ui_Mi_Rule_Data;
 struct _Efl_Ui_Mi_Rule_Data
 {
    Evas_Object *event_rect;
+   Evas_Object *controller;
    Eina_Stringshare *keypath;
 };
 
