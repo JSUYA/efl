@@ -50,6 +50,9 @@ _efl_ui_mi_controller_trigger(Eo *obj, Efl_Ui_Mi_Controller_Data *pd, const char
    const char *_end;
 
    EINA_ARRAY_ITER_NEXT(pd->states, i, state, iter)
+      efl_event_callback_call(state, EFL_UI_MI_STATE_EVENT_DEACTIVATE, NULL);
+
+   EINA_ARRAY_ITER_NEXT(pd->states, i, state, iter)
     {
         efl_ui_mi_state_sector_get(state, &_start, NULL);
         if (_start && !strcmp(start, _start))
@@ -58,6 +61,7 @@ _efl_ui_mi_controller_trigger(Eo *obj, Efl_Ui_Mi_Controller_Data *pd, const char
 
    pd->cur_state_idx = i;
    efl_ui_mi_state_sector_get(state, &_start, &_end);
+   efl_event_callback_call(state, EFL_UI_MI_STATE_EVENT_ACTIVATE, NULL);
    if (_start)
      {
         efl_event_callback_call(state, EFL_UI_MI_STATE_EVENT_TRIGGER, NULL);
@@ -81,12 +85,19 @@ _efl_ui_mi_controller_trigger_next(Eo *obj, Efl_Ui_Mi_Controller_Data *pd, Eina_
    else
      cur_idx = pd->cur_state_idx + 1;
 
+   Efl_Ui_Mi_State *state;
+   Eina_Array_Iterator iter;
+   unsigned int i;
+   EINA_ARRAY_ITER_NEXT(pd->states, i, state, iter)
+      efl_event_callback_call(state, EFL_UI_MI_STATE_EVENT_DEACTIVATE, NULL);
 
    Efl_Ui_Mi_State *cur_state = eina_array_data_get (pd->states, cur_idx);
    if (!cur_state) return EINA_FALSE;
 
    const char *_start;
    const char *_end;
+
+   efl_event_callback_call(cur_state, EFL_UI_MI_STATE_EVENT_ACTIVATE, NULL);
    efl_ui_mi_state_sector_get(cur_state, &_start, &_end);
 
    if (_start)

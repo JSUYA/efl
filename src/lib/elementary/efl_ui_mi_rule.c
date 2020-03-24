@@ -37,8 +37,6 @@ tap_gesture_cb(void *data , const Efl_Event *ev)
          break;*/
       case EFL_GESTURE_STATE_FINISHED:
          efl_event_callback_call(obj, EFL_EVENT_GESTURE_TAP, g);
-         pd->is_event_area = EINA_FALSE;
-         evas_object_hide(pd->event_rect);
          break;
       default:
          break;
@@ -72,8 +70,6 @@ _efl_ui_mi_rule_keypath_set(Eo *obj EINA_UNUSED, Efl_Ui_Mi_Rule_Data *pd, Eina_S
 #if DEBUG
    evas_object_color_set(pd->event_rect, 128, 0, 0, 128);
 #endif
-   evas_object_show(pd->event_rect);
-   pd->is_event_area = EINA_FALSE;
 
    efl_event_callback_add(pd->event_rect, EFL_EVENT_GESTURE_TAP, tap_gesture_cb, obj);
 
@@ -198,12 +194,9 @@ _trigger_cb(void *data, const Efl_Event *event)
    Eina_Rect r;
    efl_gfx_path_bounds_get(key_node, &r);
 
-//#if DEBUG
+#if DEBUG
    printf("keypath node bounds get: %d %d %d %d\n", r.pos.x, r.pos.y, r.size.w, r.size.h);
-//#endif
-
-   pd->is_event_area = EINA_TRUE;
-   evas_object_show(pd->event_rect);
+#endif
 
    evas_object_move(pd->event_rect, r.pos.x, r.pos.y);
    evas_object_resize(pd->event_rect, r.size.w, r.size.h);
@@ -218,15 +211,26 @@ _feedback_cb(void *data, const Efl_Event *event)
    Eina_Rect r;
    efl_gfx_path_bounds_get(key_node, &r);
 
-//#if DEBUG
+#if DEBUG
    printf("keypath node bounds get: %d %d %d %d\n", r.pos.x, r.pos.y, r.size.w, r.size.h);
-//#endif
-
-   if (!pd->is_event_area && !evas_object_visible_get(pd->event_rect))
-     evas_object_show(pd->event_rect);
+#endif
 
    evas_object_move(pd->event_rect, r.pos.x, r.pos.y);
    evas_object_resize(pd->event_rect, r.size.w, r.size.h);
+}
+
+static void
+_activate_cb(void *data, const Efl_Event *event)
+{
+   Efl_Ui_Mi_Rule_Data *pd = (Efl_Ui_Mi_Rule_Data *)data;
+   evas_object_show(pd->event_rect);
+}
+
+static void
+_deactivate_cb(void *data, const Efl_Event *event)
+{
+   Efl_Ui_Mi_Rule_Data *pd = (Efl_Ui_Mi_Rule_Data *)data;
+   evas_object_hide(pd->event_rect);
 }
 
 EOLIAN static Eo *
@@ -238,6 +242,8 @@ _efl_ui_mi_rule_efl_object_constructor(Eo *obj,
 
    efl_event_callback_add(efl_parent_get(obj), EFL_UI_MI_STATE_EVENT_TRIGGER, _trigger_cb, pd);
    efl_event_callback_add(efl_parent_get(obj), EFL_UI_MI_STATE_EVENT_FEEDBACK, _feedback_cb, pd);
+   efl_event_callback_add(efl_parent_get(obj), EFL_UI_MI_STATE_EVENT_ACTIVATE, _activate_cb, pd);
+   efl_event_callback_add(efl_parent_get(obj), EFL_UI_MI_STATE_EVENT_DEACTIVATE, _deactivate_cb, pd);
 
    return obj;
 }

@@ -36,5 +36,7 @@ class @beta Efl.Ui.Mi_State extends Efl.Object
       trigger : bool;
       feedback : float;
       feedback,done : bool;
+      activate : bool;
+      deactivate : bool;
    }
 }
