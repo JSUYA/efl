@@ -11,6 +11,7 @@ struct _Efl_Ui_Mi_Rule_Data
    Evas_Object *event_rect;
    Evas_Object *controller;
    Eina_Stringshare *keypath;
+   Eina_Bool is_event_area;
 };
 
 #define EFL_UI_MI_RULE_DATA_GET(o, sd) \

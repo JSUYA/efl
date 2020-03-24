@@ -68,10 +68,11 @@ _efl_ui_mi_rule_keypath_set(Eo *obj EINA_UNUSED, Efl_Ui_Mi_Rule_Data *pd, Eina_S
      pd->event_rect = evas_object_rectangle_add(e);
 
    evas_object_color_set(pd->event_rect, 0, 0, 0, 0);
-#if DEBUG
+//#if DEBUG
    evas_object_color_set(pd->event_rect, 128, 0, 0, 128);
-#endif
+//#endif
    evas_object_show(pd->event_rect);
+   pd->is_event_area = EINA_FALSE;
 
    efl_event_callback_add(pd->event_rect, EFL_EVENT_GESTURE_TAP, tap_gesture_cb, obj);
 
@@ -144,10 +145,12 @@ _efl_ui_mi_rule_efl_object_destructor(Eo *obj,
    efl_destructor(efl_super(obj, MY_CLASS));
 }
 
-static void
-_feedback_cb(void *data, const Efl_Event *event)
+static Efl_VG*
+_find_keypath_node(Efl_Ui_Mi_Rule_Data *pd)
 {
-   Efl_Ui_Mi_Rule_Data *pd = (Efl_Ui_Mi_Rule_Data *)data;
+   char buf[256];
+   Efl_VG *key_node = NULL;
+
    Evas_Object *anim = efl_key_data_get(pd->controller, "anim");
    Evas_Object *vg = efl_key_data_get(anim, "vg_obj");
 
@@ -158,8 +161,6 @@ _feedback_cb(void *data, const Efl_Event *event)
            pd->keypath);
 #endif
 
-   char buf[256];
-   Efl_VG *key_node;
    Efl_VG *root = evas_object_vg_root_node_get(vg);
 
    Eina_List *list = efl_canvas_vg_container_children_direct_get(root);
@@ -179,16 +180,49 @@ _feedback_cb(void *data, const Efl_Event *event)
              printf("matched keypath is %s\n", buf);
 #endif
              key_node = node;
+             break;
           }
-        }
-      }
+        if (key_node != NULL)
+          break;
+     }
+   }
+   return key_node;
+}
 
+static void
+_trigger_cb(void *data, const Efl_Event *event)
+{
+   Efl_Ui_Mi_Rule_Data *pd = (Efl_Ui_Mi_Rule_Data *)data;
+   Efl_VG *key_node = _find_keypath_node(pd);
    Eina_Rect r;
    efl_gfx_path_bounds_get(key_node, &r);
 
-#if DEBUG
+//#if DEBUG
    printf("keypath node bounds get: %d %d %d %d\n", r.pos.x, r.pos.y, r.size.w, r.size.h);
-#endif
+//#endif
+
+   pd->is_event_area = EINA_TRUE;
+   evas_object_show(pd->event_rect);
+
+   evas_object_move(pd->event_rect, r.pos.x, r.pos.y);
+   evas_object_resize(pd->event_rect, r.size.w, r.size.h);
+}
+
+
+static void
+_feedback_cb(void *data, const Efl_Event *event)
+{
+   Efl_Ui_Mi_Rule_Data *pd = (Efl_Ui_Mi_Rule_Data *)data;
+   Efl_VG *key_node = _find_keypath_node(pd);
+   Eina_Rect r;
+   efl_gfx_path_bounds_get(key_node, &r);
+
+//#if DEBUG
+   printf("keypath node bounds get: %d %d %d %d\n", r.pos.x, r.pos.y, r.size.w, r.size.h);
+//#endif
+
+   if (!pd->is_event_area && !evas_object_visible_get(pd->event_rect))
+     evas_object_show(pd->event_rect);
 
    evas_object_move(pd->event_rect, r.pos.x, r.pos.y);
    evas_object_resize(pd->event_rect, r.size.w, r.size.h);
@@ -201,7 +235,7 @@ _efl_ui_mi_rule_efl_object_constructor(Eo *obj,
    obj = efl_constructor(efl_super(obj, MY_CLASS));
    //evas_object_smart_callbacks_descriptions_set(obj, _smart_callbacks);
 
-   efl_event_callback_add(efl_parent_get(obj), EFL_UI_MI_STATE_EVENT_TRIGGER, _feedback_cb, pd);
+   efl_event_callback_add(efl_parent_get(obj), EFL_UI_MI_STATE_EVENT_TRIGGER, _trigger_cb, pd);
    efl_event_callback_add(efl_parent_get(obj), EFL_UI_MI_STATE_EVENT_FEEDBACK, _feedback_cb, pd);
 
    return obj;
