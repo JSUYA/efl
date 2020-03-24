@@ -43,6 +43,57 @@ tap_gesture_cb(void *data , const Efl_Event *ev)
    }
 }
 
+static void
+flick_gesture_cb(void *data , const Efl_Event *ev)
+{
+   Eo* obj = (Eo*)data;
+   EFL_UI_MI_RULE_DATA_GET_OR_RETURN(obj, pd);
+   Efl_Canvas_Gesture *g = ev->info;
+   switch(efl_gesture_state_get(g))
+   {
+      case EFL_GESTURE_STATE_STARTED:
+         break;
+      case EFL_GESTURE_STATE_CANCELED:
+         break;
+      case EFL_GESTURE_STATE_FINISHED:
+         efl_event_callback_call(obj, EFL_EVENT_GESTURE_FLICK, g);
+         break;
+      default:
+         break;
+   }
+}
+
+static void
+momentum_gesture_cb(void *data , const Efl_Event *ev)
+{
+   Eo* obj = (Eo*)data;
+   EFL_UI_MI_RULE_DATA_GET_OR_RETURN(obj, pd);
+   Efl_Canvas_Gesture *g = ev->info;
+   Eina_Position2D pos = efl_gesture_hotspot_get(g);
+   Eina_Vector2 m = efl_gesture_momentum_get(g);
+   unsigned int t = efl_gesture_timestamp_get(g);
+
+#if DEBUG
+   printf("KTH Momentum Gesture updated x,y=<%d,%d> momentum=<%f %f> time=<%d>\n",
+          pos.x, pos.y, m.x, m.y, t);
+#endif
+
+   switch(efl_gesture_state_get(g))
+   {
+      case EFL_GESTURE_STATE_STARTED:
+         break;
+      case EFL_GESTURE_STATE_UPDATED:
+         break;
+      case EFL_GESTURE_STATE_CANCELED:
+         break;
+      case EFL_GESTURE_STATE_FINISHED:
+         efl_event_callback_call(obj, EFL_EVENT_GESTURE_MOMENTUM, g);
+         break;
+      default:
+         break;
+   }
+}
+
 EOLIAN static void
 _efl_ui_mi_rule_keypath_set(Eo *obj EINA_UNUSED, Efl_Ui_Mi_Rule_Data *pd, Eina_Stringshare *keypath)
 {
@@ -72,6 +123,8 @@ _efl_ui_mi_rule_keypath_set(Eo *obj EINA_UNUSED, Efl_Ui_Mi_Rule_Data *pd, Eina_S
 #endif
 
    efl_event_callback_add(pd->event_rect, EFL_EVENT_GESTURE_TAP, tap_gesture_cb, obj);
+   efl_event_callback_add(pd->event_rect, EFL_EVENT_GESTURE_FLICK, flick_gesture_cb, obj);
+   efl_event_callback_add(pd->event_rect, EFL_EVENT_GESTURE_MOMENTUM, momentum_gesture_cb, obj);
 
 #if DEBUG
    printf("%s (%p)\n", efl_class_name_get(efl_class_get(parent)), parent);
