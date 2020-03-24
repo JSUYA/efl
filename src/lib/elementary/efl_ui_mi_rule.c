@@ -37,6 +37,7 @@ tap_gesture_cb(void *data , const Efl_Event *ev)
          break;*/
       case EFL_GESTURE_STATE_FINISHED:
          efl_event_callback_call(obj, EFL_EVENT_GESTURE_TAP, g);
+         pd->is_event_area = EINA_FALSE;
          evas_object_hide(pd->event_rect);
          break;
       default:
@@ -68,9 +69,9 @@ _efl_ui_mi_rule_keypath_set(Eo *obj EINA_UNUSED, Efl_Ui_Mi_Rule_Data *pd, Eina_S
      pd->event_rect = evas_object_rectangle_add(e);
 
    evas_object_color_set(pd->event_rect, 0, 0, 0, 0);
-//#if DEBUG
+#if DEBUG
    evas_object_color_set(pd->event_rect, 128, 0, 0, 128);
-//#endif
+#endif
    evas_object_show(pd->event_rect);
    pd->is_event_area = EINA_FALSE;
 
