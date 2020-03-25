@@ -9,8 +9,9 @@
 
 #include "elm_priv.h"
 #include "efl_ui_mi_rule_private.h"
+#include "efl_ui_mi_rule_part_text.eo.h"
 //#include "efl_ui_mi_controller_part.eo.h"
-//#include "elm_part_helper.h"
+#include "elm_part_helper.h"
 
 #define MY_CLASS EFL_UI_MI_RULE_CLASS
 
@@ -98,22 +99,8 @@ EOLIAN static void
 _efl_ui_mi_rule_keypath_set(Eo *obj EINA_UNUSED, Efl_Ui_Mi_Rule_Data *pd, Eina_Stringshare *keypath)
 {
    if (!keypath) return;
-   Eo *parent;
-   Eo *object = obj;
-   Evas *e = NULL;
-   do
-     {
-        parent = efl_parent_get(object);
-        if (!parent) continue;
 
-        if (efl_class_get(parent) == EFL_UI_MI_CONTROLLER_CLASS) 
-          {
-             e = evas_object_evas_get(parent);
-             pd->controller = parent;
-          }
-        object = parent;
-     } while(!e);
-
+   Evas *e = evas_object_evas_get(pd->controller);
    if (pd->event_rect == NULL)
      pd->event_rect = evas_object_rectangle_add(e);
 
@@ -132,7 +119,7 @@ _efl_ui_mi_rule_keypath_set(Eo *obj EINA_UNUSED, Efl_Ui_Mi_Rule_Data *pd, Eina_S
 
    eina_stringshare_replace(&pd->keypath, keypath);
 
-   evas_object_event_callback_add(parent, EVAS_CALLBACK_RESIZE, _tb_resize, pd->event_rect);
+   evas_object_event_callback_add(pd->controller, EVAS_CALLBACK_RESIZE, _tb_resize, pd->event_rect);
    if (!strcmp(keypath, "*"))
      {
         return ;
@@ -240,6 +227,21 @@ _find_keypath_node(Efl_Ui_Mi_Rule_Data *pd)
 }
 
 static void
+_calculate_text_part(Efl_Ui_Mi_Rule_Data *pd)
+{
+   int x, y, w, h;
+   Efl_VG *key_node = _find_keypath_node(pd);
+   Eina_Rect r;
+   efl_gfx_path_bounds_get(key_node, &r);
+
+   Evas *e = evas_object_evas_get(pd->controller);
+   Evas_Object *top = evas_object_top_get(e);
+   evas_object_stack_below(pd->text_part, top);
+   evas_object_geometry_get(pd->text_part, &x, &y, &w, &h);
+   evas_object_move(pd->text_part, (r.pos.x + r.size.w/2) -(w/2) , (r.pos.y + r.size.h/2) - (h/2));
+}
+
+static void
 _trigger_cb(void *data, const Efl_Event *event)
 {
    Efl_Ui_Mi_Rule_Data *pd = (Efl_Ui_Mi_Rule_Data *)data;
@@ -253,6 +255,8 @@ _trigger_cb(void *data, const Efl_Event *event)
 
    evas_object_move(pd->event_rect, r.pos.x, r.pos.y);
    evas_object_resize(pd->event_rect, r.size.w, r.size.h);
+
+   _calculate_text_part(pd);
 }
 
 
@@ -270,6 +274,8 @@ _feedback_cb(void *data, const Efl_Event *event)
 
    evas_object_move(pd->event_rect, r.pos.x, r.pos.y);
    evas_object_resize(pd->event_rect, r.size.w, r.size.h);
+
+   _calculate_text_part(pd);
 }
 
 static void
@@ -277,6 +283,7 @@ _activate_cb(void *data, const Efl_Event *event)
 {
    Efl_Ui_Mi_Rule_Data *pd = (Efl_Ui_Mi_Rule_Data *)data;
    evas_object_show(pd->event_rect);
+   evas_object_show(pd->text_part);
 }
 
 static void
@@ -284,6 +291,7 @@ _deactivate_cb(void *data, const Efl_Event *event)
 {
    Efl_Ui_Mi_Rule_Data *pd = (Efl_Ui_Mi_Rule_Data *)data;
    evas_object_hide(pd->event_rect);
+   evas_object_hide(pd->text_part);
 }
 
 EOLIAN static Eo *
@@ -293,13 +301,65 @@ _efl_ui_mi_rule_efl_object_constructor(Eo *obj,
    obj = efl_constructor(efl_super(obj, MY_CLASS));
    //evas_object_smart_callbacks_descriptions_set(obj, _smart_callbacks);
 
+   Eo *parent = NULL;
+   Eo *object = obj;
+   do {
+        parent = efl_parent_get(object);
+        if (!parent)
+          break;
+
+        if (efl_class_get(parent) == EFL_UI_MI_CONTROLLER_CLASS)
+          {
+             pd->controller = parent;
+             break;
+          }
+        object = parent;
+   } while(1);
+
    efl_event_callback_add(efl_parent_get(obj), EFL_UI_MI_STATE_EVENT_TRIGGER, _trigger_cb, pd);
    efl_event_callback_add(efl_parent_get(obj), EFL_UI_MI_STATE_EVENT_FEEDBACK, _feedback_cb, pd);
    efl_event_callback_add(efl_parent_get(obj), EFL_UI_MI_STATE_EVENT_ACTIVATE, _activate_cb, pd);
    efl_event_callback_add(efl_parent_get(obj), EFL_UI_MI_STATE_EVENT_DEACTIVATE, _deactivate_cb, pd);
 
+   //FIXME: Make text style and size set optionable
+   Evas *e = evas_object_evas_get(pd->controller);
+   pd->text_part = evas_object_text_add(e);
+   evas_object_text_style_set(pd->text_part, EVAS_TEXT_STYLE_PLAIN);
+   evas_object_text_font_set(pd->text_part, "DejaVu", 12);
+   evas_object_color_set(pd->text_part, 0, 0, 0, 255);
+   evas_object_pass_events_set(pd->text_part, EINA_TRUE);
+
    return obj;
 }
+
+EOLIAN Efl_Object *
+_efl_ui_mi_rule_efl_part_part_get(const Eo *obj, Efl_Ui_Mi_Rule_Data *pd, const char *part)
+{
+   EINA_SAFETY_ON_NULL_RETURN_VAL(part, NULL);
+   if (eina_streq(part, "progress"))
+     return ELM_PART_IMPLEMENT(EFL_UI_MI_RULE_PART_TEXT_CLASS, obj, part);
+
+  return NULL;
+}
+
+EOLIAN void
+_efl_ui_mi_rule_part_text_efl_text_text_set(Eo *obj, void *pd, const char *text)
+{
+   Elm_Part_Data *data = efl_data_scope_get(obj, EFL_UI_WIDGET_PART_CLASS);
+   EFL_UI_MI_RULE_DATA_GET_OR_RETURN(data->obj, rpd);
+
+   evas_object_text_text_set(rpd->text_part, text);
+
+   _calculate_text_part(rpd);
+}
+
+EOLIAN const char *
+_efl_ui_mi_rule_part_text_efl_text_text_get(const Eo *obj, void *pd)
+{
+  return NULL;
+}
+
+#include "efl_ui_mi_rule_part_text.eo.c"
 
 /* Efl.Part begin */
 /*ELM_PART_OVERRIDE_CONTENT_SET(efl_ui_mi_controller, EFL_UI_MI_CONTROLLER, Efl_Ui_Mi_Rule_Data)

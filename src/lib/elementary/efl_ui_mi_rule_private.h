@@ -10,6 +10,7 @@ struct _Efl_Ui_Mi_Rule_Data
 {
    Evas_Object *event_rect;
    Evas_Object *controller;
+   Evas_Object *text_part;
    Eina_Stringshare *keypath;
 };
 

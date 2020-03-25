@@ -44,6 +44,7 @@ pub_eo_files = [
   'efl_ui_mi_controller.eo',
   'efl_ui_mi_state.eo',
   'efl_ui_mi_rule.eo',
+  'efl_ui_mi_rule_part_text.eo',
   'efl_ui_bg.eo',
   'efl_ui_button.eo',
   'efl_ui_calendar.eo',

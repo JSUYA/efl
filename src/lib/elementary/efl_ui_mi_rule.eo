@@ -1,5 +1,5 @@
 
-class @beta Efl.Ui.Mi_Rule extends Efl.Object implements Efl.Canvas.Gesture_Events
+class @beta Efl.Ui.Mi_Rule extends Efl.Object implements Efl.Canvas.Gesture_Events, Efl.Part
 {
    [[ Micro Interaction Rule class
       @since 1.24
@@ -25,6 +25,7 @@ class @beta Efl.Ui.Mi_Rule extends Efl.Object implements Efl.Canvas.Gesture_Even
       }
    }
    implements {
+      Efl.Part.part_get;
       Efl.Object.constructor;
       Efl.Object.destructor;
    }
