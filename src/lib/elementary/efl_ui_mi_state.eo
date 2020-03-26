@@ -1,5 +1,5 @@
 
-class @beta Efl.Ui.Mi_State extends Efl.Object
+class @beta Efl.Ui.Mi_State extends Efl.Ui.Widget
 {
    [[ Micro Interaction State class
       @since 1.24
