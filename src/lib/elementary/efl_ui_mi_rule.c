@@ -17,9 +17,21 @@
 
 #define MY_CLASS_NAME "Efl_Ui_Mi_Rule"
 
+static Efl_VG* _find_keypath_node(Efl_Ui_Mi_Rule_Data *pd);
+static void _calculate_event_rect(Efl_Ui_Mi_Rule_Data *pd, Eina_Rect r);
+static void _calculate_text_part(Efl_Ui_Mi_Rule_Data *pd, Eina_Rect r);
+
 void
-_tb_resize(void *data, Evas *e EINA_UNUSED, Evas_Object *obj, void *event_info EINA_UNUSED)
+_parent_resize_cb(void *data, Evas *e EINA_UNUSED, Evas_Object *obj, void *event_info EINA_UNUSED)
 {
+   Efl_Ui_Mi_Rule_Data *pd = data;
+
+   Efl_VG *key_node = _find_keypath_node(pd);
+   Eina_Rect r;
+   efl_gfx_path_bounds_get(key_node, &r);
+
+   _calculate_event_rect(pd, r);
+   _calculate_text_part(pd, r);
    //FIXME: update the event rect when the parent is resized.
 }
 
@@ -119,7 +131,7 @@ _efl_ui_mi_rule_keypath_set(Eo *obj EINA_UNUSED, Efl_Ui_Mi_Rule_Data *pd, Eina_S
 
    eina_stringshare_replace(&pd->keypath, keypath);
 
-   evas_object_event_callback_add(pd->controller, EVAS_CALLBACK_RESIZE, _tb_resize, pd->event_rect);
+   evas_object_event_callback_add(pd->controller, EVAS_CALLBACK_RESIZE, _parent_resize_cb, pd);
    if (!strcmp(keypath, "*"))
      {
         return ;
@@ -182,7 +194,7 @@ _efl_ui_mi_rule_efl_object_destructor(Eo *obj,
    efl_destructor(efl_super(obj, MY_CLASS));
 }
 
-static Efl_VG*
+Efl_VG*
 _find_keypath_node(Efl_Ui_Mi_Rule_Data *pd)
 {
    char buf[256];
@@ -226,14 +238,17 @@ _find_keypath_node(Efl_Ui_Mi_Rule_Data *pd)
    return key_node;
 }
 
-static void
-_calculate_text_part(Efl_Ui_Mi_Rule_Data *pd)
+void
+_calculate_event_rect(Efl_Ui_Mi_Rule_Data *pd, Eina_Rect r)
+{
+   evas_object_move(pd->event_rect, r.pos.x, r.pos.y);
+   evas_object_resize(pd->event_rect, r.size.w, r.size.h);
+}
+
+void
+_calculate_text_part(Efl_Ui_Mi_Rule_Data *pd, Eina_Rect r)
 {
    int x, y, w, h;
-   Efl_VG *key_node = _find_keypath_node(pd);
-   Eina_Rect r;
-   efl_gfx_path_bounds_get(key_node, &r);
-
    Evas *e = evas_object_evas_get(pd->controller);
    Evas_Object *top = evas_object_top_get(e);
    evas_object_stack_below(pd->text_part, top);
@@ -253,10 +268,8 @@ _trigger_cb(void *data, const Efl_Event *event)
    printf("keypath node bounds get: %d %d %d %d\n", r.pos.x, r.pos.y, r.size.w, r.size.h);
 #endif
 
-   evas_object_move(pd->event_rect, r.pos.x, r.pos.y);
-   evas_object_resize(pd->event_rect, r.size.w, r.size.h);
-
-   _calculate_text_part(pd);
+   _calculate_event_rect(pd, r);
+   _calculate_text_part(pd, r);
 }
 
 
@@ -272,10 +285,8 @@ _feedback_cb(void *data, const Efl_Event *event)
    printf("keypath node bounds get: %d %d %d %d\n", r.pos.x, r.pos.y, r.size.w, r.size.h);
 #endif
 
-   evas_object_move(pd->event_rect, r.pos.x, r.pos.y);
-   evas_object_resize(pd->event_rect, r.size.w, r.size.h);
-
-   _calculate_text_part(pd);
+   _calculate_event_rect(pd, r);
+   _calculate_text_part(pd, r);
 }
 
 static void
@@ -350,7 +361,11 @@ _efl_ui_mi_rule_part_text_efl_text_text_set(Eo *obj, void *pd, const char *text)
 
    evas_object_text_text_set(rpd->text_part, text);
 
-   _calculate_text_part(rpd);
+   Efl_VG *key_node = _find_keypath_node(rpd);
+   Eina_Rect r;
+   efl_gfx_path_bounds_get(key_node, &r);
+
+   _calculate_text_part(rpd, r);
 }
 
 EOLIAN const char *
