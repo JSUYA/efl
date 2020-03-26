@@ -107,6 +107,43 @@ momentum_gesture_cb(void *data , const Efl_Event *ev)
    }
 }
 
+//FIXME: tempororay function for matching vg node keypath
+//       use begin and end words
+static void
+_convert_vg_node_keypath(char *keypath, char *vg_node_keypath)
+{
+   int i = 0;
+   char *p = strchr(keypath, '.');
+   if (p == NULL)
+     return;
+
+   char *cur = keypath;
+   while(1)
+   {
+      if (cur == p)
+        break;
+
+      vg_node_keypath[i] = *cur;
+      i++;
+      cur++;
+   }
+
+   vg_node_keypath[i] = ' ';
+   i++;
+
+   p = strrchr(keypath, '.');
+   p++;
+   while(1)
+   {
+      vg_node_keypath[i] = *p;
+      i++;
+      if (*p == '\0')
+        break;
+      p++;
+   }
+}
+
+
 EOLIAN static void
 _efl_ui_mi_rule_keypath_set(Eo *obj EINA_UNUSED, Efl_Ui_Mi_Rule_Data *pd, Eina_Stringshare *keypath)
 {
@@ -221,9 +258,11 @@ _find_keypath_node(Efl_Ui_Mi_Rule_Data *pd)
      Eina_List *llist = efl_canvas_vg_container_children_direct_get(layer);
      EINA_LIST_FOREACH(llist, ll, node)
      {
+        //FIXME: tempororay function for matching vg node keypath
+        _convert_vg_node_keypath(pd->keypath, vg_node_keypath);
         char *shape_keypath = efl_key_data_get(node, "_lot_node_name");
         snprintf(buf, sizeof(buf), "%s %s", layer_keypath, shape_keypath);
-        if (!strcmp(buf, pd->keypath))
+        if (!strcmp(buf, vg_node_keypath))
           {
 #if DEBUG
              printf("matched keypath is %s\n", buf);
