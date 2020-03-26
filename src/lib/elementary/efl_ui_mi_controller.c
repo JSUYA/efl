@@ -263,6 +263,10 @@ _animation_playback_progress_changed_cb(void *data, const Efl_Event *event)
 
    Efl_Ui_Mi_State *cur_state = eina_array_data_get (pd->states, pd->cur_state_idx);
    efl_event_callback_call(cur_state, EFL_UI_MI_STATE_EVENT_FEEDBACK, (double*)event->info);
+
+   double progress_value = *(double *)event->info;
+   if (progress_value == 1.0)
+     efl_event_callback_call(cur_state, EFL_UI_MI_STATE_EVENT_FEEDBACK_DONE, (double*)event->info);
 }
 
 EOLIAN static void
