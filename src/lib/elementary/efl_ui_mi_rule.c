@@ -235,6 +235,7 @@ Efl_VG*
 _find_keypath_node(Efl_Ui_Mi_Rule_Data *pd)
 {
    char buf[256];
+   char vg_node_keypath[256];
    Efl_VG *key_node = NULL;
 
    Evas_Object *anim = efl_key_data_get(pd->controller, "anim");
