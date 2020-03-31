@@ -34,7 +34,6 @@ class @beta Efl.Ui.Mi_Controller extends Efl.Ui.Widget implements Efl.File, Efl.
          values {
             state: Efl.Object;
          }
-
       }
       @property rule {
          [[ ]]
@@ -62,6 +61,14 @@ class @beta Efl.Ui.Mi_Controller extends Efl.Ui.Widget implements Efl.File, Efl.
             @in state: Efl.Ui.Mi_State;
          }
          return: bool; [[$true when it's successful. $false otherwise.]]
+      }
+      @property current_state {
+         [[ ]]
+         get {
+         }
+         values {
+            state: Efl.Object;
+         }
       }
       //
       trigger {

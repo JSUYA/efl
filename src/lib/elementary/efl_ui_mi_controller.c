@@ -138,6 +138,12 @@ _efl_ui_mi_controller_state_get(const Eo *eo_obj, Efl_Ui_Mi_Controller_Data *pd,
    return NULL;
 }
 
+EOLIAN static Eo*
+_efl_ui_mi_controller_current_state_get(const Eo *eo_obj, Efl_Ui_Mi_Controller_Data *pd)
+{
+   return eina_array_data_get(pd->states, pd->cur_state_idx);
+}
+
 Eina_Bool
 _efl_ui_mi_controller_state_add(Eo *obj, Efl_Ui_Mi_Controller_Data *pd, Efl_Ui_Mi_State *state)
 {

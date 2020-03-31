@@ -174,16 +174,6 @@ _efl_ui_mi_rule_keypath_set(Eo *obj EINA_UNUSED, Efl_Ui_Mi_Rule_Data *pd, Eina_S
    eina_stringshare_replace(&pd->keypath, keypath);
 
    evas_object_event_callback_add(pd->controller, EVAS_CALLBACK_RESIZE, _parent_resize_cb, pd);
-   if (!strcmp(keypath, "*"))
-     {
-        return ;
-     }
-
-   /* tracking keypath object */
-
-   /* Set rect geometry */
-
-
 }
 
 EOLIAN const Eina_Stringshare*
@@ -209,13 +199,19 @@ _efl_ui_mi_rule_value_provider_override(Eo *obj EINA_UNUSED, Efl_Ui_Mi_Rule_Data
      } while(!e);
 
    if (!efl_gfx_vg_value_provider_keypath_get(value_provider))
-      efl_gfx_vg_value_provider_keypath_set(value_provider, pd->keypath);
+     {
+        const buf[255];
+        sprintf(buf, "%s.*.*", pd->keypath);
+        Eina_Stringshare* new_keypath = eina_stringshare_add(buf);
+        efl_gfx_vg_value_provider_keypath_set(value_provider, new_keypath);
+        eina_stringshare_del(new_keypath);
+     }
    efl_ui_mi_controller_value_provider_override(parent, value_provider);
 }
 
 void _efl_ui_mi_rule_current_state_set(Eo *obj, Efl_Ui_Mi_Rule_Data *pd, Efl_Ui_Mi_State *current_state)
 {
-   if (!current_state) return;
+   if (!current_state || pd->current_state == current_state) return;
 
    if (pd->current_state)
      {
