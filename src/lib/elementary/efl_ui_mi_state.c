@@ -42,18 +42,6 @@ _efl_ui_mi_state_sector_get(const Eo *obj, Efl_Ui_Mi_State_Data *pd, const char 
      *end = pd->end;
 }
 
-EOLIAN void
-_efl_ui_mi_state_rule_set(Eo *obj, Efl_Ui_Mi_State_Data *pd, const char *keypath, Efl_Ui_Mi_Rule *rule)
-{
-
-}
-
-EOLIAN Efl_Ui_Mi_Rule*
-_efl_ui_mi_state_rule_get(const Eo *obj, Efl_Ui_Mi_State_Data *pd, const char *keypath)
-{
-   return 0;
-}
-
 
 EOLIAN static void
 _efl_ui_mi_state_efl_canvas_group_group_add(Eo *obj, Efl_Ui_Mi_State_Data *pd)

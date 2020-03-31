@@ -11,6 +11,7 @@ struct _Efl_Ui_Mi_Controller_Data
    Efl_Ui_Vg_Animation* anim;
    int cur_state_idx;
    Eina_Array* states;
+   Eina_Array* rules;
    //Eina_Inarray *states;             //array of Efl_Ui_Mi_State*;
 
 };

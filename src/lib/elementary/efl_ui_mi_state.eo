@@ -16,17 +16,6 @@ class @beta Efl.Ui.Mi_State extends Efl.Ui.Widget
             end: string; [[ The name of end sector ]]
          }
       }
-      @property rule {
-         [[ rule get/set ]]
-         set {}
-         get {}
-         keys {
-            keypath: string; [[ rule_name (keypath) ]]
-         }
-         values {
-            rule: Efl.Ui.Mi_Rule;
-         }
-      }
    }
    implements {
       Efl.Object.constructor;

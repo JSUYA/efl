@@ -152,6 +152,37 @@ _efl_ui_mi_controller_state_add(Eo *obj, Efl_Ui_Mi_Controller_Data *pd, Efl_Ui_M
    return EINA_FALSE;
 }
 
+EOLIAN static Eo*
+_efl_ui_mi_controller_rule_get(const Eo *eo_obj, Efl_Ui_Mi_Controller_Data *pd,
+                               const char *rule_name)
+{
+   Efl_Ui_Mi_Rule *rule;
+   Eina_Array_Iterator iter;
+   unsigned int i;
+   const char *_name;
+
+   EINA_ARRAY_ITER_NEXT(pd->rules, i, rule, iter)
+     {
+        if (!strcmp(rule_name , efl_ui_mi_rule_keypath_get(rule)))
+          return rule;
+     }
+
+   return NULL;
+}
+
+Eina_Bool
+_efl_ui_mi_controller_rule_add(Eo *obj, Efl_Ui_Mi_Controller_Data *pd, Efl_Ui_Mi_Rule *rule)
+{
+
+   if (!rule) return EINA_FALSE;
+   if (!pd->rules)
+     {
+        pd->rules = eina_array_new(sizeof(Efl_Ui_Mi_Rule*));
+     }
+
+   eina_array_push(pd->rules, rule);
+   return EINA_FALSE;
+}
 
 static void
 _sizing_eval(Eo *obj, void *data)
@@ -211,8 +242,22 @@ _create_state(Eo *parent, Efl_Ui_Mi_Controller_Data *pd)
 }
 
 void
-_create_rule(Eo *parent, Efl_Ui_Mi_Controller_Data *pd)
+_create_rules(Eo *parent, Efl_Ui_Mi_Controller_Data *pd, Efl_VG* root)
 {
+   Eina_List *list = efl_canvas_vg_container_children_direct_get(root);
+   Eina_List *l, *ll, *llist;
+   Efl_VG *layer, *node;
+   Eo* rule = NULL;
+   EINA_LIST_FOREACH(list, l, layer)
+     {
+        char *layer_keypath = efl_key_data_get(layer, "_lot_node_name");
+        if (layer_keypath)
+          {
+             rule = efl_add(EFL_UI_MI_RULE_CLASS, parent);
+             efl_ui_mi_rule_keypath_set(rule, layer_keypath);
+             efl_ui_mi_controller_rule_add(parent, rule);
+          }
+     }
 }
 
 EOLIAN static Eina_Error
@@ -240,7 +285,12 @@ _efl_ui_mi_controller_efl_file_load(Eo *obj, Efl_Ui_Mi_Controller_Data *pd)
    _sizing_eval(obj, pd);
 
    _create_state(obj, pd);
-   _create_rule(obj, pd);
+   Eo *vg = efl_key_data_get(pd->anim, "vg_obj");
+   Eo* root = efl_canvas_vg_object_root_node_get(vg);
+   if (root)
+     {
+        _create_rules(obj, pd, root);
+     }
    return 0;
 }
 
@@ -276,6 +326,9 @@ _animation_playback_progress_changed_cb(void *data, const Efl_Event *event)
    Efl_Ui_Mi_State *cur_state = eina_array_data_get (pd->states, pd->cur_state_idx);
    efl_event_callback_call(cur_state, EFL_UI_MI_STATE_EVENT_FEEDBACK, (double*)event->info);
 
+   Efl_Ui_Mi_State *wild_state = efl_ui_mi_controller_state_get(obj, "*");
+   efl_event_callback_call(wild_state, EFL_UI_MI_STATE_EVENT_FEEDBACK, (double*)event->info);
+
    double progress_value = *(double *)event->info;
    if (progress_value == 1.0)
      efl_event_callback_call(cur_state, EFL_UI_MI_STATE_EVENT_FEEDBACK_DONE, (double*)event->info);
@@ -299,6 +352,8 @@ _efl_ui_mi_controller_efl_canvas_group_group_add(Eo *obj, Efl_Ui_Mi_Controller_D
 
    efl_event_callback_add(pd->anim, EFL_PLAYER_EVENT_PLAYBACK_PROGRESS_CHANGED, _animation_playback_progress_changed_cb, obj);
    efl_key_data_set(obj, "anim", pd->anim);
+
+   pd->cur_state_idx = 0;
 
    efl_event_callback_add(obj, EFL_GFX_ENTITY_EVENT_HINTS_CHANGED, _size_hint_event_cb, pd);
 }

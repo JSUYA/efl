@@ -36,7 +36,26 @@ class @beta Efl.Ui.Mi_Controller extends Efl.Ui.Widget implements Efl.File, Efl.
          }
 
       }
+      @property rule {
+         [[ ]]
+         get {
+         }
+         keys {
+            state_name: string;
+         }
+         values {
+            state: Efl.Object;
+         }
+
+      }
       //temporary
+      rule_add {
+         [[   ]]
+         params {
+            @in state: Efl.Ui.Mi_Rule;
+         }
+         return: bool; [[$true when it's successful. $false otherwise.]]
+      }
       state_add {
          [[   ]]
          params {

@@ -476,7 +476,8 @@ Efl_VG*
 evas_cache_vg_tree_get(Vg_Cache_Entry *vg_entry, unsigned int frame_num)
 {
    if (!vg_entry) return NULL;
-   if ((vg_entry->w < 1) || (vg_entry->h < 1)) return NULL;
+   //Temporary for MicroInteraction
+   //if ((vg_entry->w < 1) || (vg_entry->h < 1)) return NULL;
 
    Vg_File_Data *vfd = vg_entry->vfd;
    if (!vfd) return NULL;

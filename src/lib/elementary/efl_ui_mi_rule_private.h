@@ -12,6 +12,7 @@ struct _Efl_Ui_Mi_Rule_Data
    Evas_Object *controller;
    Evas_Object *text_part;
    Eina_Stringshare *keypath;
+   Efl_Ui_Mi_State* current_state;
 };
 
 #define EFL_UI_MI_RULE_DATA_GET(o, sd) \

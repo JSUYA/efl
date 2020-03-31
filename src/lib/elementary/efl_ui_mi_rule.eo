@@ -7,7 +7,7 @@ class @beta Efl.Ui.Mi_Rule extends Efl.Ui.Widget implements Efl.Canvas.Gesture_E
    event_c_prefix: efl_ui_mi_rule;
    methods {
       @property keypath {
-         [[ 
+         [[
          ]]
          set {
          }
@@ -17,10 +17,21 @@ class @beta Efl.Ui.Mi_Rule extends Efl.Ui.Widget implements Efl.Canvas.Gesture_E
             keypath: stringshare; [[  ]]
          }
       }
-      value_provider_override @beta {
+      value_provider_override {
          [[ ]]
          params {
             value_provider: Efl.Gfx.Vg.Value_Provider;
+         }
+      }
+      @property current_state {
+         [[
+         ]]
+         set {
+         }
+         get {
+         }
+         values {
+            currnet_state: Efl.Ui.Mi_State; [[  ]]
          }
       }
    }

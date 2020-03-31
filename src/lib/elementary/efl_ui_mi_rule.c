@@ -21,6 +21,11 @@ static Efl_VG* _find_keypath_node(Efl_Ui_Mi_Rule_Data *pd);
 static void _calculate_event_rect(Efl_Ui_Mi_Rule_Data *pd, Eina_Rect r);
 static void _calculate_text_part(Efl_Ui_Mi_Rule_Data *pd, Eina_Rect r);
 
+static void _trigger_cb(void *data, const Efl_Event *event);
+static void _feedback_cb(void *data, const Efl_Event *event);
+static void _activate_cb(void *data, const Efl_Event *event);
+static void _deactivate_cb(void *data, const Efl_Event *event);
+
 void
 _parent_resize_cb(void *data, Evas *e EINA_UNUSED, Evas_Object *obj, void *event_info EINA_UNUSED)
 {
@@ -184,7 +189,7 @@ _efl_ui_mi_rule_keypath_set(Eo *obj EINA_UNUSED, Efl_Ui_Mi_Rule_Data *pd, Eina_S
 EOLIAN const Eina_Stringshare*
 _efl_ui_mi_rule_keypath_get(const Eo *obj EINA_UNUSED, Efl_Ui_Mi_Rule_Data *pd)
 {
-   return NULL;
+   return pd->keypath;
 }
 
 EOLIAN static void
@@ -208,13 +213,38 @@ _efl_ui_mi_rule_value_provider_override(Eo *obj EINA_UNUSED, Efl_Ui_Mi_Rule_Data
    efl_ui_mi_controller_value_provider_override(parent, value_provider);
 }
 
+void _efl_ui_mi_rule_current_state_set(Eo *obj, Efl_Ui_Mi_Rule_Data *pd, Efl_Ui_Mi_State *current_state)
+{
+   if (!current_state) return;
+
+   if (pd->current_state)
+     {
+        efl_event_callback_del(pd->current_state, EFL_UI_MI_STATE_EVENT_TRIGGER, _trigger_cb, NULL);
+        efl_event_callback_del(pd->current_state, EFL_UI_MI_STATE_EVENT_FEEDBACK, _feedback_cb, NULL);
+        efl_event_callback_del(pd->current_state, EFL_UI_MI_STATE_EVENT_ACTIVATE, _activate_cb, NULL);
+        efl_event_callback_del(pd->current_state, EFL_UI_MI_STATE_EVENT_DEACTIVATE, _deactivate_cb, NULL);
+     }
+
+   pd->current_state = current_state;
+   efl_event_callback_add(current_state, EFL_UI_MI_STATE_EVENT_TRIGGER, _trigger_cb, pd);
+   efl_event_callback_add(current_state, EFL_UI_MI_STATE_EVENT_FEEDBACK, _feedback_cb, pd);
+   efl_event_callback_add(current_state, EFL_UI_MI_STATE_EVENT_ACTIVATE, _activate_cb, pd);
+   efl_event_callback_add(current_state, EFL_UI_MI_STATE_EVENT_DEACTIVATE, _deactivate_cb, pd);
+}
+
+
+Efl_Ui_Mi_State *_efl_ui_mi_rule_current_state_get(const Eo *obj, Efl_Ui_Mi_Rule_Data *pd)
+{
+   return pd->current_state;
+}
+
 EOLIAN static void
 _efl_ui_mi_rule_efl_canvas_group_group_add(Eo *obj, Efl_Ui_Mi_Rule_Data *priv)
 {
    efl_canvas_group_add(efl_super(obj, MY_CLASS));
    elm_widget_sub_object_parent_add(obj);
 
-
+   priv->current_state = NULL;
 }
 
 EOLIAN static void
@@ -234,8 +264,6 @@ _efl_ui_mi_rule_efl_object_destructor(Eo *obj,
 Efl_VG*
 _find_keypath_node(Efl_Ui_Mi_Rule_Data *pd)
 {
-   char buf[256];
-   char vg_node_keypath[256];
    Efl_VG *key_node = NULL;
 
    Evas_Object *anim = efl_key_data_get(pd->controller, "anim");
@@ -251,29 +279,19 @@ _find_keypath_node(Efl_Ui_Mi_Rule_Data *pd)
    Efl_VG *root = evas_object_vg_root_node_get(vg);
 
    Eina_List *list = efl_canvas_vg_container_children_direct_get(root);
-   Eina_List *l, *ll, *llist;
+   Eina_List *l, *llist;
    Efl_VG *layer, *node;
    EINA_LIST_FOREACH(list, l, layer)
    {
      char *layer_keypath = efl_key_data_get(layer, "_lot_node_name");
-     Eina_List *llist = efl_canvas_vg_container_children_direct_get(layer);
-     EINA_LIST_FOREACH(llist, ll, node)
-     {
-        //FIXME: tempororay function for matching vg node keypath
-        _convert_vg_node_keypath(pd->keypath, vg_node_keypath);
-        char *shape_keypath = efl_key_data_get(node, "_lot_node_name");
-        snprintf(buf, sizeof(buf), "%s %s", layer_keypath, shape_keypath);
-        if (!strcmp(buf, vg_node_keypath))
-          {
+     if (!strcmp(layer_keypath, pd->keypath))
+       {
 #if DEBUG
-             printf("matched keypath is %s\n", buf);
+          printf("matched keypath is %s\n", buf);
 #endif
-             key_node = node;
-             break;
-          }
-        if (key_node != NULL)
+          key_node = layer;
           break;
-     }
+       }
    }
    return key_node;
 }
@@ -322,7 +340,7 @@ _feedback_cb(void *data, const Efl_Event *event)
    efl_gfx_path_bounds_get(key_node, &r);
 
 #if DEBUG
-   printf("keypath node bounds get: %d %d %d %d\n", r.pos.x, r.pos.y, r.size.w, r.size.h);
+   printf("keypath :%s node bounds get: %d %d %d %d\n",pd->keypath, r.pos.x, r.pos.y, r.size.w, r.size.h);
 #endif
 
    _calculate_event_rect(pd, r);
@@ -366,11 +384,6 @@ _efl_ui_mi_rule_efl_object_constructor(Eo *obj,
           }
         object = parent;
    } while(1);
-
-   efl_event_callback_add(efl_parent_get(obj), EFL_UI_MI_STATE_EVENT_TRIGGER, _trigger_cb, pd);
-   efl_event_callback_add(efl_parent_get(obj), EFL_UI_MI_STATE_EVENT_FEEDBACK, _feedback_cb, pd);
-   efl_event_callback_add(efl_parent_get(obj), EFL_UI_MI_STATE_EVENT_ACTIVATE, _activate_cb, pd);
-   efl_event_callback_add(efl_parent_get(obj), EFL_UI_MI_STATE_EVENT_DEACTIVATE, _deactivate_cb, pd);
 
    //FIXME: Make text style and size set optionable
    Evas *e = evas_object_evas_get(pd->controller);
