@@ -97,6 +97,7 @@ _efl_ui_mi_controller_trigger_next(Eo *obj, Efl_Ui_Mi_Controller_Data *pd, Eina_
    const char *_start;
    const char *_end;
 
+   pd->cur_state_idx++;
    efl_event_callback_call(cur_state, EFL_UI_MI_STATE_EVENT_ACTIVATE, NULL);
    efl_ui_mi_state_sector_get(cur_state, &_start, &_end);
 
@@ -108,7 +109,6 @@ _efl_ui_mi_controller_trigger_next(Eo *obj, Efl_Ui_Mi_Controller_Data *pd, Eina_
    else
      ERR("No start point");
 
-   pd->cur_state_idx++;
    return EINA_TRUE;
 }
 

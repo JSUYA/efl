@@ -347,16 +347,42 @@ static void
 _activate_cb(void *data, const Efl_Event *event)
 {
    Efl_Ui_Mi_Rule_Data *pd = (Efl_Ui_Mi_Rule_Data *)data;
-   evas_object_show(pd->event_rect);
-   evas_object_show(pd->text_part);
+   Efl_Ui_Mi_State *current_state = efl_ui_mi_controller_current_state_get(pd->controller);
+#if DEBUG
+   const char *name1;
+   const char *name2;
+   efl_ui_mi_state_sector_get(event->object, &name1, NULL);
+   efl_ui_mi_state_sector_get(current_state, &name2, NULL);
+   printf("Activate callback %s current : %s rect : %p\n",name1, name2, pd->event_rect);
+#endif
+
+   if (event->object == current_state)
+     {
+        evas_object_show(pd->event_rect);
+        evas_object_show(pd->text_part);
+     }
 }
 
 static void
 _deactivate_cb(void *data, const Efl_Event *event)
 {
    Efl_Ui_Mi_Rule_Data *pd = (Efl_Ui_Mi_Rule_Data *)data;
-   evas_object_hide(pd->event_rect);
-   evas_object_hide(pd->text_part);
+   Efl_Ui_Mi_State *current_state = efl_ui_mi_controller_current_state_get(pd->controller);
+#if DEBUG
+   const char *name1;
+   const char *name2;
+   efl_ui_mi_state_sector_get(event->object, &name1, NULL);
+   efl_ui_mi_state_sector_get(current_state, &name2, NULL);
+   printf("Deactivate callback %s current : %s rect : %p\n",name1, name2, pd->event_rect);
+#endif
+
+   if (event->object == current_state)
+     {
+        evas_object_hide(pd->event_rect);
+        efl_text_set(pd->text_part, "");
+        evas_object_hide(pd->text_part);
+
+     }
 }
 
 EOLIAN static Eo *
@@ -385,7 +411,7 @@ _efl_ui_mi_rule_efl_object_constructor(Eo *obj,
    Evas *e = evas_object_evas_get(pd->controller);
    pd->text_part = evas_object_text_add(e);
    evas_object_text_style_set(pd->text_part, EVAS_TEXT_STYLE_PLAIN);
-   evas_object_text_font_set(pd->text_part, "DejaVu", 12);
+   evas_object_text_font_set(pd->text_part, "DejaVu", 30);
    evas_object_color_set(pd->text_part, 0, 0, 0, 255);
    evas_object_pass_events_set(pd->text_part, EINA_TRUE);
 
