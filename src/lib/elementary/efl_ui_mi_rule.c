@@ -353,10 +353,12 @@ _activate_cb(void *data, const Efl_Event *event)
    const char *name2;
    efl_ui_mi_state_sector_get(event->object, &name1, NULL);
    efl_ui_mi_state_sector_get(current_state, &name2, NULL);
-   printf("Activate callback %s current : %s rect : %p\n",name1, name2, pd->event_rect);
+   printf("Activate callback %s current : %s rect : %p\n",name1, name2 ? name2:"NULL", pd->event_rect);
 #endif
+   const char *registed_state;
+   efl_ui_mi_state_sector_get(event->object, &registed_state, NULL);
 
-   if (event->object == current_state)
+   if (event->object == current_state || !strcmp(registed_state, "*"))
      {
         evas_object_show(pd->event_rect);
         evas_object_show(pd->text_part);
@@ -373,10 +375,12 @@ _deactivate_cb(void *data, const Efl_Event *event)
    const char *name2;
    efl_ui_mi_state_sector_get(event->object, &name1, NULL);
    efl_ui_mi_state_sector_get(current_state, &name2, NULL);
-   printf("Deactivate callback %s current : %s rect : %p\n",name1, name2, pd->event_rect);
+   printf("Deactivate callback %s current : %s rect : %p\n",name1, name2 ? name2:"NULL", pd->event_rect);
 #endif
+   const char *registed_state;
+   efl_ui_mi_state_sector_get(event->object, &registed_state, NULL);
 
-   if (event->object == current_state)
+   if (event->object == current_state || !strcmp(registed_state, "*"))
      {
         evas_object_hide(pd->event_rect);
         efl_text_set(pd->text_part, "");

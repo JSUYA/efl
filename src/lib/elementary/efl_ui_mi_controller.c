@@ -62,10 +62,20 @@ _efl_ui_mi_controller_trigger(Eo *obj, Efl_Ui_Mi_Controller_Data *pd, const char
    pd->cur_state_idx = i;
    efl_ui_mi_state_sector_get(state, &_start, &_end);
    efl_event_callback_call(state, EFL_UI_MI_STATE_EVENT_ACTIVATE, NULL);
+   //
+   efl_event_callback_call(eina_array_data_get(pd->states, eina_array_count_get(pd->states) - 1), EFL_UI_MI_STATE_EVENT_ACTIVATE, NULL);
+   //
    if (_start)
      {
         efl_event_callback_call(state, EFL_UI_MI_STATE_EVENT_TRIGGER, NULL);
         efl_ui_vg_animation_playing_sector(pd->anim, _start, _end);
+        if (!animation)
+          efl_player_paused_set(pd->anim, EINA_TRUE);
+        else
+          {
+             if (efl_player_paused_get(pd->anim))
+                efl_player_paused_set(pd->anim, EINA_FALSE);
+          }
      }
    else
      ERR("No start point");
@@ -80,8 +90,8 @@ _efl_ui_mi_controller_trigger_next(Eo *obj, Efl_Ui_Mi_Controller_Data *pd, Eina_
 
    int states = eina_array_count_get (pd->states);
    int cur_idx = 0;
-   if (states < pd->cur_state_idx)
-     cur_idx = pd->cur_state_idx;
+   if (states - 2 <= pd->cur_state_idx)
+     cur_idx = 0;//pd->cur_state_idx;
    else
      cur_idx = pd->cur_state_idx + 1;
 
@@ -97,14 +107,29 @@ _efl_ui_mi_controller_trigger_next(Eo *obj, Efl_Ui_Mi_Controller_Data *pd, Eina_
    const char *_start;
    const char *_end;
 
-   pd->cur_state_idx++;
+   if (states - 2 <= pd->cur_state_idx) 
+     pd->cur_state_idx = 0;
+   else
+     pd->cur_state_idx++;
+
    efl_event_callback_call(cur_state, EFL_UI_MI_STATE_EVENT_ACTIVATE, NULL);
+   //
+   efl_event_callback_call(eina_array_data_get(pd->states, states - 1), EFL_UI_MI_STATE_EVENT_ACTIVATE, NULL);
+   //
    efl_ui_mi_state_sector_get(cur_state, &_start, &_end);
 
    if (_start)
      {
         efl_event_callback_call(cur_state, EFL_UI_MI_STATE_EVENT_TRIGGER, NULL);
         efl_ui_vg_animation_playing_sector(pd->anim, _start, _end);
+        if (!animation)
+          efl_player_paused_set(pd->anim, EINA_TRUE);
+        else
+          {
+             if (efl_player_paused_get(pd->anim))
+                efl_player_paused_set(pd->anim, EINA_FALSE);
+          }
+
      }
    else
      ERR("No start point");
