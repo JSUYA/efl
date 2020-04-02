@@ -31,12 +31,26 @@ static const Evas_Smart_Cb_Description _smart_callbacks[] = {
 EOLIAN static void
 _efl_ui_mi_controller_repeat_mode_set(Eo *obj EINA_UNUSED, Efl_Ui_Mi_Controller_Data *pd, Efl_Ui_Mi_Controller_Repeat_Mode mode)
 {
+   pd->repeat_mode = mode;
+   switch (mode)
+     {
+      case EFL_UI_MI_CONTROLLER_REPEAT_MODE_NONE:
+      case EFL_UI_MI_CONTROLLER_REPEAT_MODE_ONCE:
+         efl_player_playback_loop_set(pd->anim, EINA_FALSE);
+         break;
+      case EFL_UI_MI_CONTROLLER_REPEAT_MODE_LOOP:
+         efl_player_playback_loop_set(pd->anim, EINA_TRUE);
+         break;
+      case EFL_UI_MI_CONTROLLER_REPEAT_MODE_PLAY_REWIND:
+         /* Implement not yet */
+         break;
+     }
 }
 
 EOLIAN static Efl_Ui_Mi_Controller_Repeat_Mode
 _efl_ui_mi_controller_repeat_mode_get(const Eo *obj EINA_UNUSED, Efl_Ui_Mi_Controller_Data *pd)
 {
-   return 0;
+   return pd->repeat_mode;
 }
 
 Eina_Bool

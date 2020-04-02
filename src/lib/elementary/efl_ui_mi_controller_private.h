@@ -12,6 +12,7 @@ struct _Efl_Ui_Mi_Controller_Data
    int cur_state_idx;
    Eina_Array* states;
    Eina_Array* rules;
+   Efl_Ui_Mi_Controller_Repeat_Mode repeat_mode;
    //Eina_Inarray *states;             //array of Efl_Ui_Mi_State*;
 
 };
