@@ -4,6 +4,37 @@
 
 #include "common.h"
 
+Eina_Bool
+ex_is_original_app(void)
+{
+   const char *original_pid_env = getenv("EXACTNESS_ORIGINAL_PID");
+   if (original_pid_env)
+     {
+        pid_t original_pid = atoi(original_pid_env);
+        if (original_pid == getpid())
+          return EINA_TRUE;
+     }
+   return EINA_FALSE;
+}
+
+void
+ex_set_original_envvar(void)
+{
+   const char *original_pid_env = getenv("EXACTNESS_ORIGINAL_PID");
+   if (!original_pid_env)
+     {
+        char pid[30];
+        snprintf(pid, sizeof(pid), "%d", getpid());
+        setenv("EXACTNESS_ORIGINAL_PID", pid, 0);
+     }
+}
+
+void
+ex_prepare_elm_overloay(void)
+{
+   elm_theme_overlay_add(NULL, DATA_DIR"/exactness_play.edj");
+}
+
 int
 ex_prg_invoke(const char *full_path, int argc, char **argv, Eina_Bool player)
 {
@@ -286,13 +317,6 @@ _unit_desc_make(void)
      }
    if (!unit_d)
      {
-        Eet_Data_Descriptor *code_d = NULL;
-        EET_EINA_STREAM_DATA_DESCRIPTOR_CLASS_SET(&eddc, Exactness_Source_Code);
-        code_d = eet_data_descriptor_stream_new(&eddc);
-        EET_DATA_DESCRIPTOR_ADD_BASIC(code_d, Exactness_Source_Code, "language", language, EET_T_STRING);
-        EET_DATA_DESCRIPTOR_ADD_BASIC(code_d, Exactness_Source_Code, "content", content, EET_T_STRING);
-        EET_DATA_DESCRIPTOR_ADD_BASIC(code_d, Exactness_Source_Code, "command", command, EET_T_STRING);
-
         EET_EINA_STREAM_DATA_DESCRIPTOR_CLASS_SET(&eddc, Exactness_Action);
         action_d = eet_data_descriptor_stream_new(&eddc);
 
@@ -335,7 +359,6 @@ _unit_desc_make(void)
         unit_d = eet_data_descriptor_stream_new(&eddc);
         EET_DATA_DESCRIPTOR_ADD_LIST(unit_d, Exactness_Unit, "actions", actions, action_d);
         EET_DATA_DESCRIPTOR_ADD_LIST(unit_d, Exactness_Unit, "objs", objs, objs_d);
-        EET_DATA_DESCRIPTOR_ADD_LIST(unit_d, Exactness_Unit, "codes", codes, code_d);
         EET_DATA_DESCRIPTOR_ADD_BASIC(unit_d, Exactness_Unit, "fonts_path", fonts_path, EET_T_STRING);
         EET_DATA_DESCRIPTOR_ADD_BASIC(unit_d, Exactness_Unit, "nb_shots", nb_shots, EET_T_UINT);
      }
