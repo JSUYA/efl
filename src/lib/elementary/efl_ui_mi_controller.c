@@ -252,12 +252,12 @@ _create_state(Eo *parent, Efl_Ui_Mi_Controller_Data *pd)
    //temporary
    Eo *vg = efl_key_data_get(pd->anim, "vg_obj");
    Eina_List *sector_list = efl_gfx_frame_controller_sector_list_get(vg);
+   Eo *state = NULL;
 
    if (sector_list)
      {
         Eina_List *l;
         Efl_Gfx_Frame_Sector_Data *sector;
-        Eo *state = NULL;
         const char *start_sector = NULL, *end_sector = NULL;
 
         EINA_LIST_FOREACH(sector_list, l, sector)
@@ -272,10 +272,6 @@ _create_state(Eo *parent, Efl_Ui_Mi_Controller_Data *pd)
                   efl_ui_mi_controller_state_add(parent, state);
                }
           }
-        state = efl_add(EFL_UI_MI_STATE_CLASS, parent);
-        efl_key_data_set(state, "controller", parent);
-        efl_ui_mi_state_sector_set(state, "*", NULL);
-        efl_ui_mi_controller_state_add(parent, state);
 
         EINA_LIST_FOREACH(sector_list, l, sector)
           {
@@ -284,6 +280,10 @@ _create_state(Eo *parent, Efl_Ui_Mi_Controller_Data *pd)
           }
         eina_list_free(sector_list);
      }
+   state = efl_add(EFL_UI_MI_STATE_CLASS, parent);
+   efl_key_data_set(state, "controller", parent);
+   efl_ui_mi_state_sector_set(state, "*", NULL);
+   efl_ui_mi_controller_state_add(parent, state);
 }
 
 void

@@ -434,7 +434,7 @@ EOLIAN Efl_Object *
 _efl_ui_mi_rule_efl_part_part_get(const Eo *obj, Efl_Ui_Mi_Rule_Data *pd, const char *part)
 {
    EINA_SAFETY_ON_NULL_RETURN_VAL(part, NULL);
-   if (eina_streq(part, "progress"))
+   if (eina_streq(part, "efl.text"))
      return ELM_PART_IMPLEMENT(EFL_UI_MI_RULE_PART_TEXT_CLASS, obj, part);
 
   return NULL;
