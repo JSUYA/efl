@@ -225,27 +225,67 @@ _local_transform(Efl_VG *root, double w, double h, Vg_File_Data *vfd)
    double sx = 0, sy= 0, scale;
    Eina_Matrix3 m;
 
-   if (!vfd->static_viewbox) return;
-   if (vfd->view_box.w == w && vfd->view_box.h == h) return;
+//For Searching Boundary MicroInteraction
+   Eina_List *list = efl_canvas_vg_container_children_direct_get(root);
+   Eina_List *l;
+   Efl_VG *key_node, *layer;
+   key_node = NULL;
+   EINA_LIST_FOREACH(list, l, layer)
+   {
+     char *layer_keypath = efl_key_data_get(layer, "_lot_node_name");
+     if (!strcmp(layer_keypath, "boundary"))
+       {
+#if DEBUG
+          printf("boundary node is found!\n");
+#endif
+          key_node = layer;
+          break;
+       }
+   }
 
-   sx = w / vfd->view_box.w;
-   sy = h / vfd->view_box.h;
+//Temporary MicroInteraction
+//   if (!vfd->static_viewbox) return;
+//   if (vfd->view_box.w == w && vfd->view_box.h == h) return;
 
-   scale = sx < sy ? sx : sy;
-   eina_matrix3_identity(&m);
-
-   // align hcenter and vcenter
-   if (vfd->preserve_aspect)
+//Origin Behavior
+   if (!key_node)
      {
-        eina_matrix3_translate(&m, (w - vfd->view_box.w * scale)/2.0, (h - vfd->view_box.h * scale)/2.0);
-        eina_matrix3_scale(&m, scale, scale);
-        eina_matrix3_translate(&m, -vfd->view_box.x, -vfd->view_box.y);
+        sx = w / vfd->view_box.w;
+        sy = h / vfd->view_box.h;
+
+        scale = sx < sy ? sx : sy;
+        eina_matrix3_identity(&m);
+
+        // align hcenter and vcenter
+        if (vfd->preserve_aspect)
+          {
+            eina_matrix3_translate(&m, (w - vfd->view_box.w * scale)/2.0, (h - vfd->view_box.h * scale)/2.0);
+            eina_matrix3_scale(&m, scale, scale);
+            eina_matrix3_translate(&m, -vfd->view_box.x, -vfd->view_box.y);
+          }
+       else
+         {
+            eina_matrix3_scale(&m, sx, sy);
+            eina_matrix3_translate(&m, -vfd->view_box.x, -vfd->view_box.y);
+         }
+
      }
+//Fit Mode MicroInteraction
    else
      {
-        eina_matrix3_scale(&m, sx, sy);
-        eina_matrix3_translate(&m, -vfd->view_box.x, -vfd->view_box.y);
+        eina_matrix3_identity(&m);
+        Eina_Rect r;
+        efl_gfx_path_bounds_get(key_node, &r);
+
+        if ((w/h) >= (((double)r.size.w)/((double)r.size.h)))
+          scale = h / ((double)r.size.h);
+        else
+          scale = w / ((double)r.size.w);
+
+        eina_matrix3_translate(&m, (w - vfd->view_box.w * scale)/2.0, (h - vfd->view_box.h * scale)/2.0);
+        eina_matrix3_scale(&m, scale, scale);
      }
+
    efl_canvas_vg_node_transformation_set(root, &m);
 }
 
