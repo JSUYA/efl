@@ -1074,6 +1074,14 @@ _efl_canvas_vg_object_default_size_get(const Eo *eo_obj EINA_UNUSED,
    return evas_cache_vg_entry_default_size_get(pd->vg_entry);
 }
 
+//Temporary MicroInteraction
+EOLIAN static Eina_Size2D
+_efl_canvas_vg_object_default_min_get(const Eo *eo_obj EINA_UNUSED,
+                                       Efl_Canvas_Vg_Object_Data *pd EINA_UNUSED)
+{
+   return evas_cache_vg_entry_default_min_get(pd->vg_entry);
+}
+
 /* the actual api call to add a vector graphic object */
 EAPI Eo *
 evas_object_vg_add(Evas *e)

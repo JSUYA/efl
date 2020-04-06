@@ -74,6 +74,15 @@ class @beta Efl.Canvas.Vg.Object extends Efl.Canvas.Object implements Efl.File, 
             size: Eina.Size2D;
          }
       }
+      @property default_min {
+         [[The default vector min size that specified from vector resource.
+           @since 1.22]]
+         get {
+         }
+         values {
+            size: Eina.Size2D;
+         }
+      }
    }
    implements {
       Efl.Object.constructor;

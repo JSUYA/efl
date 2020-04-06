@@ -160,6 +160,8 @@ Eina_Inarray*               evas_cache_vg_anim_sector_list_get(const Vg_Cache_En
 unsigned int                evas_cache_vg_anim_frame_count_get(const Vg_Cache_Entry *vg_entry);
 Eina_Size2D                 evas_cache_vg_entry_default_size_get(const Vg_Cache_Entry *vg_entry);
 void *                      evas_cache_vg_surface_key_get(Efl_Canvas_Vg_Node *root, int w, int h, int frame_idx);
+//Temporary MicroInteraction
+Eina_Size2D                 evas_cache_vg_entry_default_min_get(const Vg_Cache_Entry *vg_entry);
 void                        efl_canvas_vg_node_vg_obj_set(Efl_VG *node, Efl_VG *vg_obj, Efl_Canvas_Vg_Object_Data *vd);
 void                        efl_canvas_vg_node_change(Efl_VG *node);
 void                        efl_canvas_vg_container_vg_obj_update(Efl_VG *obj, Efl_Canvas_Vg_Node_Data *nd);

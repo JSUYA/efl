@@ -1132,6 +1132,8 @@ struct _Vg_File_Data
    Vg_File_Anim_Data *anim_data;           //only when animation supported.
    int ref;
    int w, h;                               //default size
+   //Temporary MicroInteraction
+   int minw, minh;                         //default min size
    Eina_List         *vp_list;             //Value providers.
 
    void           *loader_data;            //loader specific local data
