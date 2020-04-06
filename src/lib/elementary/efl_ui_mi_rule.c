@@ -297,8 +297,8 @@ _calculate_event_rect(Efl_Ui_Mi_Rule_Data *pd, Eina_Rect r)
 {
    int x, y;
    evas_object_geometry_get(pd->controller, &x, &y, NULL, NULL);
-   r.x += x;
-   r.y += y;
+   r.pos.x += x;
+   r.pos.y += y;
    evas_object_move(pd->event_rect, r.pos.x, r.pos.y);
    evas_object_resize(pd->event_rect, r.size.w, r.size.h);
 }
@@ -309,8 +309,8 @@ _calculate_text_part(Efl_Ui_Mi_Rule_Data *pd, Eina_Rect r)
    int x, y, w, h;
    int px, py;
    evas_object_geometry_get(pd->controller, &px, &py, NULL, NULL);
-   r.x += px;
-   r.y += py;
+   r.pos.x += px;
+   r.pos.y += py;
    Evas *e = evas_object_evas_get(pd->controller);
    Evas_Object *top = evas_object_top_get(e);
    evas_object_stack_below(pd->text_part, top);
