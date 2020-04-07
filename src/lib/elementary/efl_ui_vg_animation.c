@@ -75,8 +75,8 @@ _proxy_create(Eo *source)
    efl_canvas_proxy_source_clip_set(proxy, EINA_FALSE);
    efl_canvas_proxy_source_set(proxy, source);
 
-   efl_gfx_entity_visible_set(proxy, EINA_FALSE);
-   efl_gfx_entity_visible_set(source, EINA_FALSE);
+   //efl_gfx_entity_visible_set(proxy, EINA_FALSE);
+   efl_gfx_entity_visible_set(source, EINA_TRUE);
 
    return proxy;
 }
@@ -157,14 +157,18 @@ _part_draw(Efl_Ui_Vg_Animation_Sub_Obj_Data *sub_d, Eina_Position2D offset, Eina
    double ctrl[4];
    Eina_Inarray *inarray;
    Efl_Ui_Vg_Animation_Point *pt, *pt2;
-   Eo *target = sub_d->proxy;
+   Eo *target = sub_d->obj;
+   ///Eo *target = sub_d->proxy;
    Eina_Bool fast_path = EINA_TRUE;
 
    efl_gfx_path_get(sub_d->node, &cmd, &points);
    if (!cmd) return EINA_FALSE;
 
    efl_gfx_entity_visible_set(target, EINA_TRUE);
-//   efl_gfx_path_bounds_get(sub_d->node, &tbound);
+   Eina_Rect tbound;
+   efl_gfx_path_bounds_get(sub_d->node, &tbound);
+   tsize.w = tbound.size.w;
+   tsize.h = tbound.size.h;
    efl_gfx_color_get(sub_d->node, NULL, NULL, NULL, &alpha);
    efl_gfx_entity_size_set(target, tsize);
 
