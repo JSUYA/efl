@@ -1134,6 +1134,8 @@ struct _Vg_File_Data
    int w, h;                               //default size
    //Temporary MicroInteraction
    int minw, minh;                         //default min size
+   //Temporary MicroInteraction
+   int fit_mode;                           //fit mode
    Eina_List         *vp_list;             //Value providers.
 
    void           *loader_data;            //loader specific local data

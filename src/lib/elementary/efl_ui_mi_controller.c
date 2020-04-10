@@ -235,18 +235,20 @@ _sizing_eval(Eo *obj, void *data)
    Efl_Ui_Mi_Controller_Data *pd = data;
    if (!efl_file_loaded_get(pd->anim)) return;
 
-   //FIXME: For app side min size set, disable these codes
-   /*
+   Eo *vg = efl_key_data_get(pd->anim, "vg_obj");
+   Eina_Size2D size = efl_canvas_vg_object_default_min_get(vg);
+
    double hw,hh;
    efl_gfx_hint_weight_get(obj, &hw, &hh);
 
-   Eina_Size2D size = efl_ui_vg_animation_default_view_size_get(pd->anim);
+   if (hw == 0.0 && hh == 0.0)
+   {
+     //FIXME: fit_mode value should be changed to enum
+     efl_canvas_vg_object_fit_mode_set(vg, 2);
+     efl_gfx_hint_size_min_set(obj, size);
+     efl_gfx_hint_size_max_set(obj, size);
+   }
 
-   Eina_Size2D min = {-1, -1};
-   if (hw == 0) min.w = size.w;
-   if (hh == 0) min.h = size.h;
-   efl_gfx_hint_size_min_set(obj, min);
-   */
 }
 
 void
@@ -365,20 +367,6 @@ _size_hint_event_cb(void *data, const Efl_Event *event)
 }
 
 static void
-_resize_event_cb(void *data, const Efl_Event *ev)
-{
-   Efl_Ui_Mi_Controller_Data *pd = data;
-   Eo *vg = efl_key_data_get(pd->anim, "vg_obj");
-   Eina_Size2D size = efl_canvas_vg_object_default_min_get(vg);
-
-   double hw,hh;
-   efl_gfx_hint_weight_get(ev->object, &hw, &hh);
-
-   if (hw == 0.0 && hh == 0.0)
-     efl_gfx_hint_size_min_set(ev->object, size);
-}
-
-static void
 _animation_playback_progress_changed_cb(void *data, const Efl_Event *event)
 {
    Eo* obj = data;
@@ -394,6 +382,20 @@ _animation_playback_progress_changed_cb(void *data, const Efl_Event *event)
    double progress_value = *(double *)event->info;
    if (progress_value == 1.0)
      efl_event_callback_call(cur_state, EFL_UI_MI_STATE_EVENT_FEEDBACK_DONE, (double*)event->info);
+
+   Eo *vg = efl_key_data_get(pd->anim, "vg_obj");
+   Eina_Size2D size = efl_canvas_vg_object_default_min_get(vg);
+
+   double hw,hh;
+   efl_gfx_hint_weight_get(obj, &hw, &hh);
+
+   if (hw == 0.0 && hh == 0.0)
+   {
+     //FIXME: fit_mode value should be changed to enum
+     efl_canvas_vg_object_fit_mode_set(vg, 2);
+     efl_gfx_hint_size_min_set(obj, size);
+     efl_gfx_hint_size_max_set(obj, size);
+   }
 }
 
 EOLIAN static void
@@ -418,7 +420,6 @@ _efl_ui_mi_controller_efl_canvas_group_group_add(Eo *obj, Efl_Ui_Mi_Controller_D
    pd->cur_state_idx = 0;
 
    efl_event_callback_add(obj, EFL_GFX_ENTITY_EVENT_HINTS_CHANGED, _size_hint_event_cb, pd);
-   efl_event_callback_add(obj, EFL_GFX_ENTITY_EVENT_SIZE_CHANGED, _resize_event_cb, pd);
 }
 
 EOLIAN static void

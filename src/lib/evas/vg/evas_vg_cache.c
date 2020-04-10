@@ -243,6 +243,10 @@ _local_transform(Efl_VG *root, double w, double h, Vg_File_Data *vfd)
        }
    }
 
+   //FIXME:Temporary, If There is no boundary layer, calculate the root boundary
+   if (key_node == NULL && vfd->fit_mode == 2)
+     key_node = root;
+
 //Temporary MicroInteraction
 //   if (!vfd->static_viewbox) return;
 //   if (vfd->view_box.w == w && vfd->view_box.h == h) return;
@@ -287,13 +291,11 @@ _local_transform(Efl_VG *root, double w, double h, Vg_File_Data *vfd)
         if ((w/h) >= ((double)vfd->w/(double)vfd->h))
           min_scale = vfd->h / h;
         else
-          min_scale = vfd->w / h;
+          min_scale = vfd->w / w;
 
-        if (vfd->minw <= 0 && vfd->minh <= 0)
-          {
-             vfd->minw = (int)(r.size.w * min_scale);
-             vfd->minh = (int)(r.size.h * min_scale);
-          }
+        //Calc Default Min Size
+        vfd->minw = (int)(r.size.w * min_scale);
+        vfd->minh = (int)(r.size.h * min_scale);
 
         eina_matrix3_translate(&m, (w - vfd->view_box.w * scale)/2.0, (h - vfd->view_box.h * scale)/2.0);
         eina_matrix3_scale(&m, scale, scale);
@@ -603,6 +605,13 @@ evas_cache_vg_entry_default_min_get(const Vg_Cache_Entry *vg_entry)
 {
    if (!vg_entry) return EINA_SIZE2D(0, 0);
    return EINA_SIZE2D(vg_entry->vfd->minw, vg_entry->vfd->minh);
+}
+
+//Temporary MicroInteraction
+void
+evas_cache_vg_entry_fit_mode_set(const Vg_Cache_Entry *vg_entry, int mode)
+{
+   vg_entry->vfd->fit_mode = mode;
 }
 
 Eina_Bool

@@ -159,9 +159,9 @@ _efl_ui_mi_rule_keypath_set(Eo *obj EINA_UNUSED, Efl_Ui_Mi_Rule_Data *pd, Eina_S
      pd->event_rect = evas_object_rectangle_add(e);
 
    evas_object_color_set(pd->event_rect, 0, 0, 0, 0);
-#if DEBUG
+//#if DEBUG
    evas_object_color_set(pd->event_rect, 128, 0, 0, 128);
-#endif
+//#endif
 
    efl_event_callback_add(pd->event_rect, EFL_EVENT_GESTURE_TAP, tap_gesture_cb, obj);
    efl_event_callback_add(pd->event_rect, EFL_EVENT_GESTURE_FLICK, flick_gesture_cb, obj);

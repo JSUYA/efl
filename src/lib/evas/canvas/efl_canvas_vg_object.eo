@@ -83,6 +83,16 @@ class @beta Efl.Canvas.Vg.Object extends Efl.Canvas.Object implements Efl.File, 
             size: Eina.Size2D;
          }
       }
+      @property fit_mode {
+         [[The vector object fit mode set.
+           @since 1.22]]
+         set {
+         }
+         values {
+            mode: int;
+         }
+      }
+
    }
    implements {
       Efl.Object.constructor;

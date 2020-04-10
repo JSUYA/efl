@@ -293,6 +293,15 @@ _efl_canvas_vg_object_efl_file_load(Eo *eo_obj, Efl_Canvas_Vg_Object_Data *pd)
                                              file, key,
                                              obj->cur->geometry.w,
                                              obj->cur->geometry.h, NULL);
+
+   //Temporoary MicroIntraction
+   evas_cache_vg_entry_fit_mode_set(pd->vg_entry, 1);
+
+   //Temporary MicroInteraction
+   //for calculating bounds size, vg object should have the size
+   Eina_Size2D size = evas_cache_vg_entry_default_size_get(pd->vg_entry);
+   evas_object_resize(eo_obj, size.w, size.h);
+
    evas_object_change(eo_obj, obj);
    pd->changed = EINA_TRUE;
 
@@ -1081,6 +1090,14 @@ _efl_canvas_vg_object_default_min_get(const Eo *eo_obj EINA_UNUSED,
 {
    return evas_cache_vg_entry_default_min_get(pd->vg_entry);
 }
+
+//Temporary MicroInteraction
+EOLIAN static void
+_efl_canvas_vg_object_fit_mode_set(Eo *obj, Efl_Canvas_Vg_Object_Data *pd, int mode)
+{
+   evas_cache_vg_entry_fit_mode_set(pd->vg_entry, mode);
+}
+
 
 /* the actual api call to add a vector graphic object */
 EAPI Eo *
