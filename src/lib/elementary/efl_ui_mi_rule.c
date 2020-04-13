@@ -26,6 +26,29 @@ static void _feedback_cb(void *data, const Efl_Event *event);
 static void _activate_cb(void *data, const Efl_Event *event);
 static void _deactivate_cb(void *data, const Efl_Event *event);
 
+void _transform_bounds_rect(Efl_Ui_Mi_Rule_Data *pd, Eina_Rect *r)
+{
+   Evas_Object *anim = efl_key_data_get(pd->controller, "anim");
+   Evas_Object *vg = efl_key_data_get(anim, "vg_obj");
+
+   Efl_VG *root = evas_object_vg_root_node_get(vg);
+   Eina_Matrix3 *m = efl_canvas_vg_node_transformation_get(root);
+
+   Eina_Matrix3 transformed_m;
+   eina_matrix3_identity(&transformed_m);
+   eina_matrix3_translate(&transformed_m, (double)r->pos.x, (double)r->pos.y);
+   eina_matrix3_multiply_copy(&transformed_m, m , &transformed_m);
+
+   double scale, x, y;
+   eina_matrix3_values_get(&transformed_m, &scale, NULL, &x,
+                                     NULL, NULL, &y,
+                                     NULL, NULL, NULL);
+   r->pos.x = x;
+   r->pos.y = y;
+   r->size.w = r->size.w * scale;
+   r->size.h = r->size.h * scale;
+}
+
 void
 _parent_resize_cb(void *data, Evas *e EINA_UNUSED, Evas_Object *obj, void *event_info EINA_UNUSED)
 {
@@ -34,6 +57,12 @@ _parent_resize_cb(void *data, Evas *e EINA_UNUSED, Evas_Object *obj, void *event
    Efl_VG *key_node = _find_keypath_node(pd);
    Eina_Rect r;
    efl_gfx_path_bounds_get(key_node, &r);
+
+   double ww, wh;
+   efl_gfx_hint_weight_get(pd->controller, &ww, &wh);
+
+   if (ww == 0.0 && wh == 0.0)
+     _transform_bounds_rect(pd, &r);
 
    _calculate_event_rect(pd, r);
    _calculate_text_part(pd, r);
@@ -174,6 +203,7 @@ _efl_ui_mi_rule_keypath_set(Eo *obj EINA_UNUSED, Efl_Ui_Mi_Rule_Data *pd, Eina_S
    eina_stringshare_replace(&pd->keypath, keypath);
 
    evas_object_event_callback_add(pd->controller, EVAS_CALLBACK_RESIZE, _parent_resize_cb, pd);
+   evas_object_event_callback_add(pd->controller, EVAS_CALLBACK_MOVE, _parent_resize_cb, pd);
 }
 
 EOLIAN const Eina_Stringshare*
@@ -266,9 +296,9 @@ _find_keypath_node(Efl_Ui_Mi_Rule_Data *pd)
    Evas_Object *vg = efl_key_data_get(anim, "vg_obj");
 
 #if DEBUG
-   prinitf("keypath finding, vg:%p, root node:%p, keypath:%s\n",
+   printf("keypath finding, vg:%p, root node:%p, keypath:%s\n",
            vg,
-           evas_object_vg_root_node_get(vg)
+           evas_object_vg_root_node_get(vg),
            pd->keypath);
 #endif
 
@@ -283,7 +313,7 @@ _find_keypath_node(Efl_Ui_Mi_Rule_Data *pd)
      if (!strcmp(layer_keypath, pd->keypath))
        {
 #if DEBUG
-          printf("matched keypath is %s\n", buf);
+          printf("matched keypath is %s\n", pd->keypath);
 #endif
           key_node = layer;
           break;
@@ -295,8 +325,9 @@ _find_keypath_node(Efl_Ui_Mi_Rule_Data *pd)
 void
 _calculate_event_rect(Efl_Ui_Mi_Rule_Data *pd, Eina_Rect r)
 {
-   int x, y;
-   evas_object_geometry_get(pd->controller, &x, &y, NULL, NULL);
+   int x, y, w, h;
+   evas_object_geometry_get(pd->controller, &x, &y, &w, &h);
+
    r.pos.x += x;
    r.pos.y += y;
    evas_object_move(pd->event_rect, r.pos.x, r.pos.y);
@@ -330,6 +361,12 @@ _trigger_cb(void *data, const Efl_Event *event)
    printf("keypath node bounds get: %d %d %d %d\n", r.pos.x, r.pos.y, r.size.w, r.size.h);
 #endif
 
+   double ww, wh;
+   efl_gfx_hint_weight_get(pd->controller, &ww, &wh);
+
+   if (ww == 0.0 && wh == 0.0)
+     _transform_bounds_rect(pd, &r);
+
    _calculate_event_rect(pd, r);
    _calculate_text_part(pd, r);
 }
@@ -346,6 +383,12 @@ _feedback_cb(void *data, const Efl_Event *event)
 #if DEBUG
    printf("keypath :%s node bounds get: %d %d %d %d\n",pd->keypath, r.pos.x, r.pos.y, r.size.w, r.size.h);
 #endif
+
+   double ww, wh;
+   efl_gfx_hint_weight_get(pd->controller, &ww, &wh);
+
+   if (ww == 0.0 && wh == 0.0)
+     _transform_bounds_rect(pd, &r);
 
    _calculate_event_rect(pd, r);
    _calculate_text_part(pd, r);
