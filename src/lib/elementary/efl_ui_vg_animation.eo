@@ -159,7 +159,7 @@ class Efl.Ui.Vg_Animation extends Efl.Ui.Widget implements Efl.Gfx.View, Efl.Fil
       Efl.File.load;
       Efl.File.unload;
       Efl.Gfx.Entity.visible { set; }
-      Efl.Gfx.Entity.position { set; }
+      Efl.Gfx.Entity.position { set; get; }
       Efl.Gfx.Entity.size { set; }
       Efl.Gfx.View.view_size { set; get; }
       Efl.Part.part_get;

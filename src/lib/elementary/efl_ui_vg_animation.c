@@ -143,7 +143,7 @@ _node_get(Efl_VG *node, const char *part)
 }
 
 static Eina_Bool
-_part_draw(Efl_Ui_Vg_Animation_Sub_Obj_Data *sub_d, Eina_Position2D offset, Eina_Size2D tsize)
+_part_draw(Efl_Ui_Vg_Animation_Sub_Obj_Data *sub_d, Eina_Position2D obj_pos, Eina_Position2D offset, Eina_Size2D tsize)
 {
    const Efl_Gfx_Path_Command_Type *cmd, *tcmd;
    const double *points;
@@ -165,15 +165,11 @@ _part_draw(Efl_Ui_Vg_Animation_Sub_Obj_Data *sub_d, Eina_Position2D offset, Eina
    if (!cmd) return EINA_FALSE;
 
    efl_gfx_entity_visible_set(target, EINA_TRUE);
-   Eina_Rect tbound;
-   efl_gfx_path_bounds_get(sub_d->node, &tbound);
-   tsize.w = tbound.size.w;
-   tsize.h = tbound.size.h;
    efl_gfx_color_get(sub_d->node, NULL, NULL, NULL, &alpha);
    efl_gfx_entity_size_set(target, tsize);
 
    //TODO: Optimize it, scalable or not?
-   efl_gfx_entity_size_set(sub_d->obj, tsize);
+   efl_gfx_entity_position_set(sub_d->obj, obj_pos);
 
    //Fast Path? Shape outlines by consisted of straight lines.
    tcmd = cmd;
@@ -459,19 +455,20 @@ _update_part_contents(Eo *obj, Efl_Ui_Vg_Animation_Data *pd)
 
    Efl_VG *root = evas_object_vg_root_node_get(pd->vg);
    if (!root) return;
-
    Eina_List *l;
-   Eina_Position2D pos = efl_gfx_entity_position_get(pd->vg);
    Efl_Ui_Vg_Animation_Sub_Obj_Data *sub_d;
-   Eina_Size2D tsize = efl_gfx_entity_size_get(obj);
+   Eina_Rect r;
 
    EINA_LIST_FOREACH(pd->subs, l, sub_d)
      {
         if (!sub_d->node)
           sub_d->node = _node_get(root, sub_d->part);
 
-        if (sub_d->node)
-          _part_draw(sub_d, pos, tsize);
+        if (sub_d->node){
+             efl_gfx_path_bounds_get(sub_d->node, &r);
+             Eina_Position2D pos = efl_gfx_entity_position_get(obj);
+             _part_draw(sub_d, r.pos, pos, r.size);
+        }
         else
           ERR("part(%s) is invalid in Efl_Ui_Vg_Animation(%p)", sub_d->part, obj);
      }
@@ -902,6 +899,13 @@ _efl_ui_vg_animation_efl_gfx_entity_position_set(Eo *obj,
    Eina_Bool vis = _visible_check(obj);
    if (!vis) _proxy_map_disable(pd);
    _autoplay(obj, pd, vis);
+}
+
+EOLIAN Eina_Position2D
+_efl_ui_vg_animation_efl_gfx_entity_position_get(const Eo *obj,
+                                                 Efl_Ui_Vg_Animation_Data *pd)
+{
+   return efl_gfx_entity_position_get(efl_super(obj, MY_CLASS));
 }
 
 EOLIAN static void
@@ -1480,6 +1484,15 @@ elm_animation_view_state_get(Elm_Animation_View *obj)
    return state;
 }
 
+
+// Hoo.........
+void
+_part_content_resize_cb(void *data, Evas *e EINA_UNUSED, Evas_Object *obj, void *event_info EINA_UNUSED)
+{
+   Efl_Ui_Vg_Animation_Data *pd = data;
+   _update_part_contents(obj, pd);
+}
+
 static Eina_Bool
 _efl_ui_vg_animation_content_set(Eo *obj, Efl_Ui_Vg_Animation_Data *pd, const char *part, Efl_Gfx_Entity *content)
 {
@@ -1527,6 +1540,8 @@ _efl_ui_vg_animation_content_set(Eo *obj, Efl_Ui_Vg_Animation_Data *pd, const ch
         sub_d->obj = content;
         sub_d->proxy = _proxy_create(sub_d->obj);
         pd->subs = eina_list_append(pd->subs, sub_d);
+        evas_object_event_callback_add(obj, EVAS_CALLBACK_RESIZE, _part_content_resize_cb, pd);
+        evas_object_event_callback_add(obj, EVAS_CALLBACK_MOVE, _part_content_resize_cb, pd);
         efl_parent_set(content, obj);
      }
 
