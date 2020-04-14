@@ -281,6 +281,13 @@ _efl_canvas_vg_container_efl_gfx_path_bounds_get(const Eo *obj EINA_UNUSED,
         else
           {
              efl_gfx_path_bounds_get(child, &s);
+
+             //FIXME, MicroInteraction Temporary
+             //When getting root node boundary whilde animating, soemtimes the boundary comes wrong
+             //so skip wrong value
+             if (s.pos.x == 0 && s.pos.y == 0 && s.size.w == 0 && s.size.h == 0)
+               continue;
+
              eina_rectangle_union(&r->rect, &s.rect);
           }
      }
