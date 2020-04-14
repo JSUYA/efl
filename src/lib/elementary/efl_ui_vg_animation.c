@@ -95,6 +95,12 @@ _proxy_map_disable(Efl_Ui_Vg_Animation_Data *pd)
 
         //TODO: remove this call
         evas_object_map_enable_set(sub_d->proxy, EINA_FALSE);
+
+
+        if (efl_gfx_mapping_has(sub_d->obj))
+          efl_gfx_mapping_reset(sub_d->obj);
+        evas_object_map_enable_set(sub_d->obj, EINA_FALSE);
+        efl_gfx_entity_visible_set(sub_d->obj, EINA_FALSE);
      }
 }
 
