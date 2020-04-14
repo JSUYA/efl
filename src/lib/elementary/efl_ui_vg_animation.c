@@ -210,10 +210,16 @@ _part_draw(Efl_Ui_Vg_Animation_Sub_Obj_Data *sub_d, Eina_Position2D offset, Eina
         efl_gfx_mapping_coord_absolute_set(target, 0, points[6] + offset.x, points[7] + offset.y, 0);
 
         //Color
-        efl_gfx_mapping_color_set(target, 0, alpha, alpha, alpha, alpha);
+        // Temproary
+        efl_gfx_mapping_color_set(target, 0, 255, 255, 255, 255);
+        efl_gfx_mapping_color_set(target, 1, 255, 255, 255, 255);
+        efl_gfx_mapping_color_set(target, 2, 255, 255, 255, 255);
+        efl_gfx_mapping_color_set(target, 3, 255, 255, 255, 255);
+
+/*        efl_gfx_mapping_color_set(target, 0, alpha, alpha, alpha, alpha);
         efl_gfx_mapping_color_set(target, 1, alpha, alpha, alpha, alpha);
         efl_gfx_mapping_color_set(target, 2, alpha, alpha, alpha, alpha);
-        efl_gfx_mapping_color_set(target, 3, alpha, alpha, alpha, alpha);
+        efl_gfx_mapping_color_set(target, 3, alpha, alpha, alpha, alpha);*/
 
         //UV
         efl_gfx_mapping_uv_set(target, 0, 0, 0);
@@ -422,11 +428,16 @@ _part_draw(Efl_Ui_Vg_Animation_Sub_Obj_Data *sub_d, Eina_Position2D offset, Eina
              evas_map_point_image_uv_set(map, pt_idx + 2, ((float) j + 1) * u_segment, ((float) i + 1) * v_segment);
              evas_map_point_image_uv_set(map, pt_idx + 3, ((float) j) * u_segment, ((float) i + 1) * v_segment);
 
-             evas_map_point_color_set(map, pt_idx + 0, alpha, alpha, alpha, alpha);
+             //Temporary
+             evas_map_point_color_set(map, pt_idx + 0, 255, 255, 255, 255);
+             evas_map_point_color_set(map, pt_idx + 1, 255, 255, 255, 255);
+             evas_map_point_color_set(map, pt_idx + 2, 255, 255, 255, 255);
+             evas_map_point_color_set(map, pt_idx + 3, 255, 255, 255, 255);
+
+/*             evas_map_point_color_set(map, pt_idx + 0, alpha, alpha, alpha, alpha);
              evas_map_point_color_set(map, pt_idx + 1, alpha, alpha, alpha, alpha);
              evas_map_point_color_set(map, pt_idx + 2, alpha, alpha, alpha, alpha);
-             evas_map_point_color_set(map, pt_idx + 3, alpha, alpha, alpha, alpha);
-
+             evas_map_point_color_set(map, pt_idx + 3, alpha, alpha, alpha, alpha);*/
              pt_idx += 4;
           }
      }
