@@ -297,7 +297,19 @@ _local_transform(Efl_VG *root, double w, double h, Vg_File_Data *vfd)
         vfd->minw = (int)(r.size.w * min_scale);
         vfd->minh = (int)(r.size.h * min_scale);
 
-        eina_matrix3_translate(&m, (w - vfd->view_box.w * scale)/2.0, (h - vfd->view_box.h * scale)/2.0);
+        //Calc Center Position
+        int cx = r.pos.x + (r.size.w / 2);
+        int cy = r.pos.y + (r.size.h / 2);
+        int cw = w / 2;
+        int ch = h / 2;
+
+        int scx = cw - cw;
+        int scy = ch - cy;
+
+        scx *= min_scale;
+        scy *= min_scale;
+
+        eina_matrix3_translate(&m, (w - vfd->view_box.w * scale)/2.0 + scx, (h - vfd->view_box.h * scale)/2.0 + scy);
         eina_matrix3_scale(&m, scale, scale);
      }
 
