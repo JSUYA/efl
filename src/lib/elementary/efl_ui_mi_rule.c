@@ -346,7 +346,8 @@ _calculate_text_part(Efl_Ui_Mi_Rule_Data *pd, Eina_Rect r)
    Evas_Object *top = evas_object_top_get(e);
    evas_object_stack_below(pd->text_part, top);
    evas_object_geometry_get(pd->text_part, &x, &y, &w, &h);
-   evas_object_move(pd->text_part, (r.pos.x + r.size.w/2) -(w/2) , (r.pos.y + r.size.h/2) - (h/2));
+   evas_object_move(pd->text_part, r.pos.x, (r.pos.y + r.size.h/2) - (h/2));
+   evas_object_resize(pd->text_part, r.size.w, r.size.h);
 }
 
 static void
@@ -469,6 +470,7 @@ _efl_ui_mi_rule_efl_object_constructor(Eo *obj,
    evas_object_text_font_set(pd->text_part, "DejaVu", 30);
    evas_object_color_set(pd->text_part, 0, 0, 0, 255);
    evas_object_pass_events_set(pd->text_part, EINA_TRUE);
+   evas_obj_text_ellipsis_set(pd->text_part, 0.0);
 
    return obj;
 }
