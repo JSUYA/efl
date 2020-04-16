@@ -470,7 +470,7 @@ _efl_ui_mi_rule_efl_object_constructor(Eo *obj,
    evas_object_text_font_set(pd->text_part, "DejaVu", 30);
    evas_object_color_set(pd->text_part, 0, 0, 0, 255);
    evas_object_pass_events_set(pd->text_part, EINA_TRUE);
-   evas_obj_text_ellipsis_set(pd->text_part, 0.0);
+   evas_object_text_ellipsis_set(pd->text_part, 0.0);
 
    return obj;
 }
