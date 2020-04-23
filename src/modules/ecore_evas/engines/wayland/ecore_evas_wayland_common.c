@@ -59,8 +59,8 @@ _ecore_evas_wl_common_animator_register(Ecore_Evas *ee)
    EINA_SAFETY_ON_TRUE_RETURN(edata->ticking);
    EINA_SAFETY_ON_TRUE_RETURN(edata->frame != NULL);
 
-   edata->frame = ecore_wl2_window_frame_callback_add(edata->win,
-                                                      _anim_cb_tick, ee);
+   edata->frame =
+     ecore_wl2_window_frame_callback_add(edata->win, _anim_cb_tick, ee);
    if (!ecore_wl2_window_pending_get(edata->win) && !ee->in_async_render &&
        !ee->animator_ticked && !ee->animator_ran && !ee->draw_block)
      ecore_wl2_window_false_commit(edata->win);
@@ -364,38 +364,16 @@ _ecore_evas_wl_common_resize(Ecore_Evas *ee, int w, int h)
         int maxw = 0, maxh = 0;
         int minw = 0, minh = 0;
 
-        if (ECORE_EVAS_PORTRAIT(ee))
-          {
-             if (ee->prop.min.w > 0)
-               minw = (ee->prop.min.w);
-             if (ee->prop.min.h > 0)
-               minh = (ee->prop.min.h);
-             if (ee->prop.max.w > 0)
-               maxw = (ee->prop.max.w);
-             if (ee->prop.max.h > 0)
-               maxh = (ee->prop.max.h);
-          }
-        else
-          {
-             if (ee->prop.min.w > 0)
-               minw = (ee->prop.min.w);
-             if (ee->prop.min.h > 0)
-               minh = (ee->prop.min.h);
-             if (ee->prop.max.w > 0)
-               maxw = (ee->prop.max.w);
-             if (ee->prop.max.h > 0)
-               maxh = (ee->prop.max.h);
-          }
+        if (ee->prop.min.w > 0) minw = (ee->prop.min.w);
+        if (ee->prop.min.h > 0) minh = (ee->prop.min.h);
+        if (ee->prop.max.w > 0) maxw = (ee->prop.max.w);
+        if (ee->prop.max.h > 0) maxh = (ee->prop.max.h);
 
-        if ((maxw > 0) && (w > maxw))
-          w = maxw;
-        else if (w < minw)
-          w = minw;
+        if ((maxw > 0) && (w > maxw)) w = maxw;
+        else if (w < minw) w = minw;
 
-        if ((maxh > 0) && (h > maxh))
-          h = maxh;
-        else if (h < minh)
-          h = minh;
+        if ((maxh > 0) && (h > maxh)) h = maxh;
+        else if (h < minh) h = minh;
 
         if (!ee->prop.maximized)
           {
