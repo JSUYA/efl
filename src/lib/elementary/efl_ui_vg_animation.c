@@ -172,6 +172,8 @@ _part_draw(Efl_Ui_Vg_Animation_Sub_Obj_Data *sub_d, Eina_Position2D obj_pos, Ein
 
    efl_gfx_entity_visible_set(target, EINA_TRUE);
    efl_gfx_color_get(sub_d->node, NULL, NULL, NULL, &alpha);
+   Eina_Bool visibility = efl_gfx_entity_visible_get(sub_d->node);
+
    efl_gfx_entity_size_set(target, tsize);
 
    //TODO: Optimize it, scalable or not?
@@ -213,10 +215,19 @@ _part_draw(Efl_Ui_Vg_Animation_Sub_Obj_Data *sub_d, Eina_Position2D obj_pos, Ein
 
         //Color
         // Temproary
-        efl_gfx_mapping_color_set(target, 0, 255, 255, 255, 255);
-        efl_gfx_mapping_color_set(target, 1, 255, 255, 255, 255);
-        efl_gfx_mapping_color_set(target, 2, 255, 255, 255, 255);
-        efl_gfx_mapping_color_set(target, 3, 255, 255, 255, 255);
+        if (visibility){
+             efl_gfx_mapping_color_set(target, 0, 255, 255, 255, 255);
+             efl_gfx_mapping_color_set(target, 1, 255, 255, 255, 255);
+             efl_gfx_mapping_color_set(target, 2, 255, 255, 255, 255);
+             efl_gfx_mapping_color_set(target, 3, 255, 255, 255, 255);
+        }
+        else
+          {
+             efl_gfx_mapping_color_set(target, 0, 0, 0, 0, 0);
+             efl_gfx_mapping_color_set(target, 1, 0, 0, 0, 0);
+             efl_gfx_mapping_color_set(target, 2, 0, 0, 0, 0);
+             efl_gfx_mapping_color_set(target, 3, 0, 0, 0, 0);
+          }
 
 /*        efl_gfx_mapping_color_set(target, 0, alpha, alpha, alpha, alpha);
         efl_gfx_mapping_color_set(target, 1, alpha, alpha, alpha, alpha);
@@ -1010,19 +1021,21 @@ Eina_Bool _efl_ui_vg_animation_playing_sector(Eo *obj, Efl_Ui_Vg_Animation_Data 
      }
    else
      {
-        if (start)
+        if (start && !end)
           {
              efl_gfx_frame_controller_sector_get(pd->vg, start, &start_frame, &end_frame);
           }
         else if (end)
           {
+             start_frame = efl_ui_vg_animation_frame_get(obj);
              efl_gfx_frame_controller_sector_get(pd->vg, end, &end_frame, NULL);
           }
      }
 
    efl_ui_vg_animation_min_frame_set(obj, start_frame);
-   if (start_frame < end_frame)
-      efl_ui_vg_animation_max_frame_set(obj, end_frame);
+   // Temporary fix for microinteraction
+   if (start_frame < end_frame - 1)
+      efl_ui_vg_animation_max_frame_set(obj, end_frame - 1);
 
    if (!efl_player_playing_set(obj, EINA_TRUE))
       return EINA_FALSE;

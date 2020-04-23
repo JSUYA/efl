@@ -21,11 +21,6 @@ static Efl_VG* _find_keypath_node(Efl_Ui_Mi_Rule_Data *pd);
 static void _calculate_event_rect(Efl_Ui_Mi_Rule_Data *pd, Eina_Rect r);
 static void _calculate_text_part(Efl_Ui_Mi_Rule_Data *pd, Eina_Rect r);
 
-static void _trigger_cb(void *data, const Efl_Event *event);
-static void _feedback_cb(void *data, const Efl_Event *event);
-static void _activate_cb(void *data, const Efl_Event *event);
-static void _deactivate_cb(void *data, const Efl_Event *event);
-
 void _transform_bounds_rect(Efl_Ui_Mi_Rule_Data *pd, Eina_Rect *r)
 {
    Evas_Object *anim = efl_key_data_get(pd->controller, "anim");
@@ -188,9 +183,9 @@ _efl_ui_mi_rule_keypath_set(Eo *obj EINA_UNUSED, Efl_Ui_Mi_Rule_Data *pd, Eina_S
      pd->event_rect = evas_object_rectangle_add(e);
 
    evas_object_color_set(pd->event_rect, 0, 0, 0, 0);
-#if DEBUG
+//#if DEBUG
    evas_object_color_set(pd->event_rect, 128, 0, 0, 128);
-#endif
+//#endif
 
    efl_event_callback_add(pd->event_rect, EFL_EVENT_GESTURE_TAP, tap_gesture_cb, obj);
    efl_event_callback_add(pd->event_rect, EFL_EVENT_GESTURE_FLICK, flick_gesture_cb, obj);
@@ -239,38 +234,89 @@ _efl_ui_mi_rule_value_provider_override(Eo *obj EINA_UNUSED, Efl_Ui_Mi_Rule_Data
    efl_ui_mi_controller_value_provider_override(parent, value_provider);
 }
 
-void _efl_ui_mi_rule_current_state_set(Eo *obj, Efl_Ui_Mi_Rule_Data *pd, Efl_Ui_Mi_State *current_state)
-{
-   if (!current_state || pd->current_state == current_state) return;
-
-   if (pd->current_state)
-     {
-        efl_event_callback_del(pd->current_state, EFL_UI_MI_STATE_EVENT_TRIGGER, _trigger_cb, NULL);
-        efl_event_callback_del(pd->current_state, EFL_UI_MI_STATE_EVENT_FEEDBACK, _feedback_cb, NULL);
-        efl_event_callback_del(pd->current_state, EFL_UI_MI_STATE_EVENT_ACTIVATE, _activate_cb, NULL);
-        efl_event_callback_del(pd->current_state, EFL_UI_MI_STATE_EVENT_DEACTIVATE, _deactivate_cb, NULL);
-     }
-
-   pd->current_state = current_state;
-   efl_event_callback_add(current_state, EFL_UI_MI_STATE_EVENT_TRIGGER, _trigger_cb, pd);
-   efl_event_callback_add(current_state, EFL_UI_MI_STATE_EVENT_FEEDBACK, _feedback_cb, pd);
-   efl_event_callback_add(current_state, EFL_UI_MI_STATE_EVENT_ACTIVATE, _activate_cb, pd);
-   efl_event_callback_add(current_state, EFL_UI_MI_STATE_EVENT_DEACTIVATE, _deactivate_cb, pd);
-}
-
-
 Efl_Ui_Mi_State *_efl_ui_mi_rule_current_state_get(const Eo *obj, Efl_Ui_Mi_Rule_Data *pd)
 {
    return pd->current_state;
 }
 
+static void
+_rule_activate_cb(void *data, const Efl_Event *event)
+{
+   Efl_Ui_Mi_Rule_Data *pd = (Efl_Ui_Mi_Rule_Data *)data;
+   Efl_Ui_Mi_State *current_state = efl_ui_mi_controller_current_state_get(pd->controller);
+   Efl_Ui_Mi_State *state = (Efl_Ui_Mi_State*)event->info;
+
+   if (state == current_state)
+     {
+        Efl_VG *key_node = _find_keypath_node(pd);
+        Eina_Rect r;
+        efl_gfx_path_bounds_get(key_node, &r);
+        double ww, wh;
+        efl_gfx_hint_weight_get(pd->controller, &ww, &wh);
+
+        if (ww == 0.0 && wh == 0.0)
+          _transform_bounds_rect(pd, &r);
+
+        _calculate_event_rect(pd, r);
+        _calculate_text_part(pd, r);
+
+        evas_object_show(pd->event_rect);
+        evas_object_show(pd->text_part);
+     }
+}
+
+static void
+_rule_update_cb(void *data, const Efl_Event *event)
+{
+#if DEBUG
+   printf("RULE UPDATE : %p\n", event->object);
+#endif
+   Efl_Ui_Mi_Rule_Data *pd = (Efl_Ui_Mi_Rule_Data *)data;
+   Efl_VG *key_node = _find_keypath_node(pd);
+   Eina_Rect r;
+   efl_gfx_path_bounds_get(key_node, &r);
+
+#if DEBUG
+   printf("keypath :%s node bounds get: %d %d %d %d\n",pd->keypath, r.pos.x, r.pos.y, r.size.w, r.size.h);
+#endif
+
+   double ww, wh;
+   efl_gfx_hint_weight_get(pd->controller, &ww, &wh);
+
+   if (ww == 0.0 && wh == 0.0)
+     _transform_bounds_rect(pd, &r);
+
+   _calculate_event_rect(pd, r);
+   _calculate_text_part(pd, r);
+}
+
+static void
+_rule_deactivate_cb(void *data, const Efl_Event *event)
+{
+#if DEBUG
+   printf("RULE DEACTIVATE : %p\n", event->object);
+#endif
+   Efl_Ui_Mi_Rule_Data *pd = (Efl_Ui_Mi_Rule_Data *)data;
+   Efl_Ui_Mi_State *current_state = efl_ui_mi_controller_current_state_get(pd->controller);
+   Efl_Ui_Mi_State *state = (Efl_Ui_Mi_State*)event->info;
+
+   if (state == current_state)
+     {
+        evas_object_hide(pd->event_rect);
+        evas_object_hide(pd->text_part);
+     }
+}
+
 EOLIAN static void
-_efl_ui_mi_rule_efl_canvas_group_group_add(Eo *obj, Efl_Ui_Mi_Rule_Data *priv)
+_efl_ui_mi_rule_efl_canvas_group_group_add(Eo *obj, Efl_Ui_Mi_Rule_Data *pd)
 {
    efl_canvas_group_add(efl_super(obj, MY_CLASS));
    elm_widget_sub_object_parent_add(obj);
 
-   priv->current_state = NULL;
+   efl_event_callback_add(obj, EFL_UI_MI_RULE_EVENT_ACTIVATE, _rule_activate_cb, pd);
+   efl_event_callback_add(obj, EFL_UI_MI_RULE_EVENT_UPDATE, _rule_update_cb, pd);
+   efl_event_callback_add(obj, EFL_UI_MI_RULE_EVENT_DEACTIVATE, _rule_deactivate_cb, pd);
+   pd->current_state = NULL;
 }
 
 EOLIAN static void
@@ -348,97 +394,6 @@ _calculate_text_part(Efl_Ui_Mi_Rule_Data *pd, Eina_Rect r)
    evas_object_geometry_get(pd->text_part, &x, &y, &w, &h);
    evas_object_move(pd->text_part, r.pos.x, (r.pos.y + r.size.h/2) - (h/2));
    evas_object_resize(pd->text_part, r.size.w, r.size.h);
-}
-
-static void
-_trigger_cb(void *data, const Efl_Event *event)
-{
-   Efl_Ui_Mi_Rule_Data *pd = (Efl_Ui_Mi_Rule_Data *)data;
-   Efl_VG *key_node = _find_keypath_node(pd);
-   Eina_Rect r;
-   efl_gfx_path_bounds_get(key_node, &r);
-
-#if DEBUG
-   printf("keypath node bounds get: %d %d %d %d\n", r.pos.x, r.pos.y, r.size.w, r.size.h);
-#endif
-
-   double ww, wh;
-   efl_gfx_hint_weight_get(pd->controller, &ww, &wh);
-
-   if (ww == 0.0 && wh == 0.0)
-     _transform_bounds_rect(pd, &r);
-
-   _calculate_event_rect(pd, r);
-   _calculate_text_part(pd, r);
-}
-
-
-static void
-_feedback_cb(void *data, const Efl_Event *event)
-{
-   Efl_Ui_Mi_Rule_Data *pd = (Efl_Ui_Mi_Rule_Data *)data;
-   Efl_VG *key_node = _find_keypath_node(pd);
-   Eina_Rect r;
-   efl_gfx_path_bounds_get(key_node, &r);
-
-#if DEBUG
-   printf("keypath :%s node bounds get: %d %d %d %d\n",pd->keypath, r.pos.x, r.pos.y, r.size.w, r.size.h);
-#endif
-
-   double ww, wh;
-   efl_gfx_hint_weight_get(pd->controller, &ww, &wh);
-
-   if (ww == 0.0 && wh == 0.0)
-     _transform_bounds_rect(pd, &r);
-
-   _calculate_event_rect(pd, r);
-   _calculate_text_part(pd, r);
-}
-
-static void
-_activate_cb(void *data, const Efl_Event *event)
-{
-   Efl_Ui_Mi_Rule_Data *pd = (Efl_Ui_Mi_Rule_Data *)data;
-   Efl_Ui_Mi_State *current_state = efl_ui_mi_controller_current_state_get(pd->controller);
-#if DEBUG
-   const char *name1;
-   const char *name2;
-   efl_ui_mi_state_sector_get(event->object, &name1, NULL);
-   efl_ui_mi_state_sector_get(current_state, &name2, NULL);
-   printf("Activate callback %s current : %s rect : %p\n",name1, name2 ? name2:"NULL", pd->event_rect);
-#endif
-   const char *registed_state;
-   efl_ui_mi_state_sector_get(event->object, &registed_state, NULL);
-
-   if (event->object == current_state || !strcmp(registed_state, "*"))
-     {
-        evas_object_show(pd->event_rect);
-        evas_object_show(pd->text_part);
-     }
-}
-
-static void
-_deactivate_cb(void *data, const Efl_Event *event)
-{
-   Efl_Ui_Mi_Rule_Data *pd = (Efl_Ui_Mi_Rule_Data *)data;
-   Efl_Ui_Mi_State *current_state = efl_ui_mi_controller_current_state_get(pd->controller);
-#if DEBUG
-   const char *name1;
-   const char *name2;
-   efl_ui_mi_state_sector_get(event->object, &name1, NULL);
-   efl_ui_mi_state_sector_get(current_state, &name2, NULL);
-   printf("Deactivate callback %s current : %s rect : %p\n",name1, name2 ? name2:"NULL", pd->event_rect);
-#endif
-   const char *registed_state;
-   efl_ui_mi_state_sector_get(event->object, &registed_state, NULL);
-
-   if (event->object == current_state || !strcmp(registed_state, "*"))
-     {
-        evas_object_hide(pd->event_rect);
-        efl_text_set(pd->text_part, "");
-        evas_object_hide(pd->text_part);
-
-     }
 }
 
 EOLIAN static Eo *

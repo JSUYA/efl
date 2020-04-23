@@ -23,7 +23,7 @@ class @beta Efl.Ui.Mi_Rule extends Efl.Ui.Widget implements Efl.Canvas.Gesture_E
             value_provider: Efl.Gfx.Vg.Value_Provider;
          }
       }
-      @property current_state {
+/*      @property current_state {
          [[
          ]]
          set {
@@ -33,7 +33,7 @@ class @beta Efl.Ui.Mi_Rule extends Efl.Ui.Widget implements Efl.Canvas.Gesture_E
          values {
             currnet_state: Efl.Ui.Mi_State; [[  ]]
          }
-      }
+      }*/
    }
    implements {
       Efl.Part.part_get;
@@ -41,5 +41,8 @@ class @beta Efl.Ui.Mi_Rule extends Efl.Ui.Widget implements Efl.Canvas.Gesture_E
       Efl.Object.destructor;
    }
    events {
+      activate : bool;
+      update: bool;
+      deactivate : bool;
    }
 }

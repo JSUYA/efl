@@ -9,10 +9,12 @@ typedef struct _Efl_Ui_Mi_Controller_Data Efl_Ui_Mi_Controller_Data;
 struct _Efl_Ui_Mi_Controller_Data
 {
    Efl_Ui_Vg_Animation* anim;
-   int cur_state_idx;
+   Efl_Ui_Mi_State *current_state;
+   Eina_Bool first_play;
    Eina_Array* states;
    Eina_Array* rules;
    Efl_Ui_Mi_Controller_Repeat_Mode repeat_mode;
+   Eina_Bool is_feedback_play;
    //Eina_Inarray *states;             //array of Efl_Ui_Mi_State*;
 
 };

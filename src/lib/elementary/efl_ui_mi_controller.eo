@@ -74,8 +74,15 @@ class @beta Efl.Ui.Mi_Controller extends Efl.Ui.Widget implements Efl.File, Efl.
       trigger {
          [[    ]]
          params {
-            @in state: string; [[  ]]
+            @in state: Efl.Ui.Mi_State; [[  ]]
             @in animation: bool; [[  ]]
+         }
+         return: bool; [[$true when it's successful. $false otherwise.]]
+      }
+      feedback {
+         [[    ]]
+         params {
+            @in state: Efl.Ui.Mi_State; [[  ]]
          }
          return: bool; [[$true when it's successful. $false otherwise.]]
       }

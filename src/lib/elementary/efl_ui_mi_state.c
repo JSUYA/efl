@@ -18,7 +18,7 @@
 
 
 EOLIAN static void
-_efl_ui_mi_state_sector_set(Eo *eo_obj, Efl_Ui_Mi_State_Data *pd,
+_efl_ui_mi_state_sector_set(Eo *eo_obj EINA_UNUSED, Efl_Ui_Mi_State_Data *pd,
                                 const char *start, const char *end)
 {
    if (!start) return ;
@@ -34,7 +34,7 @@ _efl_ui_mi_state_sector_set(Eo *eo_obj, Efl_Ui_Mi_State_Data *pd,
 }
 
 EOLIAN void
-_efl_ui_mi_state_sector_get(const Eo *obj, Efl_Ui_Mi_State_Data *pd, const char **start, const char **end)
+_efl_ui_mi_state_sector_get(const Eo *obj EINA_UNUSED, Efl_Ui_Mi_State_Data *pd, const char **start, const char **end)
 {
    if (start)
      *start = pd->start;
@@ -42,6 +42,79 @@ _efl_ui_mi_state_sector_get(const Eo *obj, Efl_Ui_Mi_State_Data *pd, const char 
      *end = pd->end;
 }
 
+Efl_Ui_Mi_Rule *
+_efl_ui_mi_state_rule_get(const Eo *obj, Efl_Ui_Mi_State_Data *pd,
+                               const char *rule_name)
+{
+
+   Eo *controller = efl_key_data_get(obj, "controller");
+   if (!controller) {
+       ERR("Controller is NULL\n");
+   }
+   Eo *rule = efl_ui_mi_controller_rule_get(controller, rule_name);
+   if (rule)
+     pd->rule_list = eina_list_append(pd->rule_list, rule);
+   return rule;
+}
+
+static void
+_activate_cb(void *data, const Efl_Event *event)
+{
+   Efl_Ui_Mi_State_Data *pd = (Efl_Ui_Mi_State_Data*)data;
+#if DEBUG
+   printf("CALLED ACTIVATE CALLBACK (%s)\n", pd->start);
+#endif
+
+   Eina_List *l;
+   Eo *rule;
+   EINA_LIST_FOREACH(pd->rule_list, l, rule)
+     efl_event_callback_call(rule, EFL_UI_MI_RULE_EVENT_ACTIVATE, event->object);
+}
+
+static void
+_trigger_cb(void *data, const Efl_Event *event)
+{
+   Efl_Ui_Mi_State_Data *pd = (Efl_Ui_Mi_State_Data*)data;
+#if DEBUG
+   printf("CALLED TRIGGER CALLBACK (%s)\n", pd->start);
+#endif
+
+}
+
+static void
+_feedback_cb(void *data, const Efl_Event *event)
+{
+   Efl_Ui_Mi_State_Data *pd = (Efl_Ui_Mi_State_Data*)data;
+#if DEBUG
+   printf("CALLED FEEDBACK CALLBACK (%s)(%f) rule : %d\n", pd->start, event->info? *(double*)event->info:-1, eina_list_count(pd->rule_list));
+#endif
+   Eina_List *l;
+   Eo *rule;
+   EINA_LIST_FOREACH(pd->rule_list, l, rule)
+     efl_event_callback_call(rule, EFL_UI_MI_RULE_EVENT_UPDATE, event->object);
+}
+
+static void
+_deactivate_cb(void *data, const Efl_Event *event)
+{
+   Efl_Ui_Mi_State_Data *pd = (Efl_Ui_Mi_State_Data*)data;
+#if DEBUG
+   printf("CALLED DEACTIVATE CALLBACK (%s)\n", pd->start);
+#endif
+   Eina_List *l;
+   Eo *rule;
+   EINA_LIST_FOREACH(pd->rule_list, l, rule)
+     efl_event_callback_call(rule, EFL_UI_MI_RULE_EVENT_DEACTIVATE, event->object);
+}
+
+static void
+_feedback_done_cb(void *data, const Efl_Event *event)
+{
+   Efl_Ui_Mi_State_Data *pd = (Efl_Ui_Mi_State_Data*)data;
+#if DEBUG
+   printf("CALLED FEEDBACK_DONE CALLBACK (%s)\n", pd->start);
+#endif
+}
 
 EOLIAN static void
 _efl_ui_mi_state_efl_canvas_group_group_add(Eo *obj, Efl_Ui_Mi_State_Data *pd)
@@ -49,6 +122,12 @@ _efl_ui_mi_state_efl_canvas_group_group_add(Eo *obj, Efl_Ui_Mi_State_Data *pd)
    efl_canvas_group_add(efl_super(obj, MY_CLASS));
    elm_widget_sub_object_parent_add(obj);
 
+   efl_event_callback_priority_add(obj, EFL_UI_MI_STATE_EVENT_ACTIVATE, EFL_CALLBACK_PRIORITY_BEFORE, _activate_cb, pd);
+   efl_event_callback_priority_add(obj, EFL_UI_MI_STATE_EVENT_DEACTIVATE, EFL_CALLBACK_PRIORITY_BEFORE, _deactivate_cb, pd);
+
+   efl_event_callback_priority_add(obj, EFL_UI_MI_STATE_EVENT_TRIGGER, EFL_CALLBACK_PRIORITY_BEFORE, _trigger_cb, pd);
+   efl_event_callback_priority_add(obj, EFL_UI_MI_STATE_EVENT_FEEDBACK, EFL_CALLBACK_PRIORITY_BEFORE, _feedback_cb, pd);
+   efl_event_callback_priority_add(obj, EFL_UI_MI_STATE_EVENT_FEEDBACK_DONE, EFL_CALLBACK_PRIORITY_BEFORE, _feedback_done_cb, pd);
 
    pd->start = NULL;
    pd->end = NULL;

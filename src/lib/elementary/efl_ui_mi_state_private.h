@@ -10,6 +10,7 @@ struct _Efl_Ui_Mi_State_Data
 {
    const char *start;
    const char *end;
+   Eina_List *rule_list;
 };
 
 #define EFL_UI_MI_STATE_DATA_GET(o, sd) \

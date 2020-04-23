@@ -54,100 +54,148 @@ _efl_ui_mi_controller_repeat_mode_get(const Eo *obj EINA_UNUSED, Efl_Ui_Mi_Contr
 }
 
 Eina_Bool
-_efl_ui_mi_controller_trigger(Eo *obj, Efl_Ui_Mi_Controller_Data *pd, const char *start, Eina_Bool animation)
+_efl_ui_mi_controller_trigger(Eo *obj, Efl_Ui_Mi_Controller_Data *pd, Efl_Ui_Mi_State *state, Eina_Bool animation)
 {
 
-   Efl_Ui_Mi_State *state;
+   Efl_Ui_Mi_State *itr_state;
    Eina_Array_Iterator iter;
    unsigned int i;
-   const char *_start;
-   const char *_end;
+   const char *_start = NULL;
+   const char *_end = NULL;
+   Eina_Bool find = EINA_FALSE;
 
-   EINA_ARRAY_ITER_NEXT(pd->states, i, state, iter)
-      efl_event_callback_call(state, EFL_UI_MI_STATE_EVENT_DEACTIVATE, NULL);
-
-   EINA_ARRAY_ITER_NEXT(pd->states, i, state, iter)
-    {
-        efl_ui_mi_state_sector_get(state, &_start, NULL);
-        if (_start && !strcmp(start, _start))
-          break;
-    }
-
-   pd->cur_state_idx = i;
-   efl_ui_mi_state_sector_get(state, &_start, &_end);
-   efl_event_callback_call(state, EFL_UI_MI_STATE_EVENT_ACTIVATE, NULL);
-   //
-   efl_event_callback_call(eina_array_data_get(pd->states, eina_array_count_get(pd->states) - 1), EFL_UI_MI_STATE_EVENT_ACTIVATE, NULL);
-   //
-   if (_start)
+   // Check valid state.
+   EINA_ARRAY_ITER_NEXT(pd->states, i, itr_state, iter)
      {
-        efl_event_callback_call(state, EFL_UI_MI_STATE_EVENT_TRIGGER, NULL);
-        efl_ui_vg_animation_playing_sector(pd->anim, _start, _end);
+        if (itr_state == state)
+          {
+             find = EINA_TRUE;
+             break;
+          }
+     }
+   if (!find)  // Invalid state, play all frame
+     efl_player_playing_set(pd->anim, EINA_TRUE);
+
+   // Find Start, End frame
+   Efl_Ui_Mi_State *current_state = pd->current_state;
+   if (current_state)
+     {
+        efl_ui_mi_state_sector_get(current_state, &_start, NULL); // start state or 0 frame
+     }
+   efl_ui_mi_state_sector_get(state, &_end, NULL); // Goal state
+
+   if (state != pd->current_state)
+     efl_event_callback_call(pd->current_state, EFL_UI_MI_STATE_EVENT_DEACTIVATE, NULL);
+
+   if (_end)
+     {
         if (!animation)
-          efl_player_paused_set(pd->anim, EINA_TRUE);
+          {
+             Eo *vg = efl_key_data_get(pd->anim, "vg_obj");
+             int end_frame;
+             efl_gfx_frame_controller_sector_get(vg, _end, &end_frame, NULL);
+             efl_ui_vg_animation_frame_set(pd->anim, end_frame);
+             efl_player_paused_set(pd->anim, EINA_TRUE);
+             pd->current_state = state;
+             efl_event_callback_call(state, EFL_UI_MI_STATE_EVENT_TRIGGER, NULL);
+             pd->is_feedback_play = EINA_FALSE;
+             efl_event_callback_call(pd->current_state, EFL_UI_MI_STATE_EVENT_ACTIVATE, NULL);
+             //efl_event_callback_call(state, EFL_UI_MI_STATE_EVENT_FEEDBACK_DONE, NULL);
+          }
         else
           {
+             if (!_start)
+               {
+                  ERR("First State didn't support animated trigger\n");
+                  return EINA_FALSE;
+               }
+             efl_ui_vg_animation_playing_sector(pd->anim, _start, _end);
              if (efl_player_paused_get(pd->anim))
-                efl_player_paused_set(pd->anim, EINA_FALSE);
+               efl_player_paused_set(pd->anim, EINA_FALSE);
+             pd->current_state = current_state;
+             efl_event_callback_call(current_state, EFL_UI_MI_STATE_EVENT_TRIGGER, NULL);
+             pd->is_feedback_play = EINA_FALSE;
+             efl_event_callback_call(pd->current_state, EFL_UI_MI_STATE_EVENT_ACTIVATE, NULL);
           }
      }
    else
      ERR("No start point");
 
+   return EINA_TRUE;
+}
+
+Eina_Bool
+_efl_ui_mi_controller_feedback(Eo *obj, Efl_Ui_Mi_Controller_Data *pd, Efl_Ui_Mi_State *state)
+{
+   Efl_Ui_Mi_State *itr_state;
+   Eina_Array_Iterator iter;
+   unsigned int i = 0;
+   unsigned int c = 0;
+   const char *_start = NULL;
+   const char *_end = NULL;
+   Eina_Bool find = EINA_FALSE;
+   int states_num = eina_array_count_get(pd->states);
+
+   if (state != pd->current_state)
+     efl_event_callback_call(pd->current_state, EFL_UI_MI_STATE_EVENT_DEACTIVATE, NULL);
+
+   // Check valid state.
+   EINA_ARRAY_ITER_NEXT(pd->states, c, itr_state, iter)
+     {
+        i++;
+        if (itr_state == state)
+          {
+             find = EINA_TRUE;
+             break;
+          }
+     }
+   if (!find || i == states_num)
+     {
+        ERR("find : %d, i : %d == states_num %d", find, i, states_num);
+        return EINA_FALSE;
+     }
+
+   // Find Start, End frame
+   efl_ui_mi_state_sector_get(state, &_start, NULL);
+
+   if (i < states_num)
+     {
+        efl_ui_mi_state_sector_get(eina_array_data_get(pd->states, i), &_end, NULL);
+        efl_ui_vg_animation_playing_sector(pd->anim, _start, _end);
+        pd->current_state = state;
+        pd->is_feedback_play = EINA_TRUE;
+
+        efl_event_callback_call(state, EFL_UI_MI_STATE_EVENT_ACTIVATE, NULL);
+     }
    return EINA_FALSE;
+
 }
 
 Eina_Bool
 _efl_ui_mi_controller_trigger_next(Eo *obj, Efl_Ui_Mi_Controller_Data *pd, Eina_Bool animation)
 {
-   if (!pd->states) return EINA_FALSE;
-
-   int states = eina_array_count_get (pd->states);
-   int cur_idx = 0;
-   if (states - 2 <= pd->cur_state_idx)
-     cur_idx = 0;//pd->cur_state_idx;
-   else
-     cur_idx = pd->cur_state_idx + 1;
-
-   Efl_Ui_Mi_State *state;
+   Efl_Ui_Mi_State *itr_state;
    Eina_Array_Iterator iter;
-   unsigned int i;
-   EINA_ARRAY_ITER_NEXT(pd->states, i, state, iter)
-      efl_event_callback_call(state, EFL_UI_MI_STATE_EVENT_DEACTIVATE, NULL);
-
-   Efl_Ui_Mi_State *cur_state = eina_array_data_get (pd->states, cur_idx);
-   if (!cur_state) return EINA_FALSE;
-
-   const char *_start;
-   const char *_end;
-
-   if (states - 2 <= pd->cur_state_idx) 
-     pd->cur_state_idx = 0;
-   else
-     pd->cur_state_idx++;
-
-   efl_event_callback_call(cur_state, EFL_UI_MI_STATE_EVENT_ACTIVATE, NULL);
-   //
-   efl_event_callback_call(eina_array_data_get(pd->states, states - 1), EFL_UI_MI_STATE_EVENT_ACTIVATE, NULL);
-   //
-   efl_ui_mi_state_sector_get(cur_state, &_start, &_end);
-
-   if (_start)
+   unsigned int i = 0;
+   unsigned int c = 0;
+   Eina_Bool find = EINA_FALSE;
+   int states_num = eina_array_count_get(pd->states);
+   // Check valid state.
+   EINA_ARRAY_ITER_NEXT(pd->states, c, itr_state, iter)
      {
-        efl_event_callback_call(cur_state, EFL_UI_MI_STATE_EVENT_TRIGGER, NULL);
-        efl_ui_vg_animation_playing_sector(pd->anim, _start, _end);
-        if (!animation)
-          efl_player_paused_set(pd->anim, EINA_TRUE);
-        else
+        i++;
+        if (itr_state == pd->current_state)
           {
-             if (efl_player_paused_get(pd->anim))
-                efl_player_paused_set(pd->anim, EINA_FALSE);
+             find = EINA_TRUE;
+             break;
           }
-
      }
-   else
-     ERR("No start point");
-
+   if (!find || i >= states_num)
+     {
+        ERR("find : %d, i : %d == states_num %d", find, i, states_num);
+        return EINA_FALSE;
+     }
+   efl_ui_mi_controller_trigger(obj, eina_array_data_get(pd->states, i), animation);
    return EINA_TRUE;
 }
 
@@ -180,7 +228,7 @@ _efl_ui_mi_controller_state_get(const Eo *eo_obj, Efl_Ui_Mi_Controller_Data *pd,
 EOLIAN static Eo*
 _efl_ui_mi_controller_current_state_get(const Eo *eo_obj, Efl_Ui_Mi_Controller_Data *pd)
 {
-   return eina_array_data_get(pd->states, pd->cur_state_idx);
+   return pd->current_state;
 }
 
 Eina_Bool
@@ -278,6 +326,13 @@ _create_state(Eo *parent, Efl_Ui_Mi_Controller_Data *pd)
                }
           }
 
+        //Last state is end contents. this is not playable.
+        start_sector = end_sector;
+        state = efl_add(EFL_UI_MI_STATE_CLASS, parent);
+        efl_key_data_set(state, "controller", parent);
+        efl_ui_mi_state_sector_set(state, start_sector, NULL);
+        efl_ui_mi_controller_state_add(parent, state);
+
         EINA_LIST_FOREACH(sector_list, l, sector)
           {
              free((char*)sector->name);
@@ -285,10 +340,6 @@ _create_state(Eo *parent, Efl_Ui_Mi_Controller_Data *pd)
           }
         eina_list_free(sector_list);
      }
-   state = efl_add(EFL_UI_MI_STATE_CLASS, parent);
-   efl_key_data_set(state, "controller", parent);
-   efl_ui_mi_state_sector_set(state, "*", NULL);
-   efl_ui_mi_controller_state_add(parent, state);
 }
 
 void
@@ -366,22 +417,132 @@ _size_hint_event_cb(void *data, const Efl_Event *event)
    _sizing_eval(event->object, data);
 }
 
+
+Eo*
+_find_current_state(Eo *obj, int frame)
+{
+   Efl_Ui_Mi_Controller_Data *pd = efl_data_scope_safe_get(obj, MY_CLASS);
+
+   Efl_Ui_Mi_State *state;
+   Eina_Array_Iterator iter;
+   int i;
+   Eo *vg = efl_key_data_get(pd->anim, "vg_obj");
+
+   EINA_ARRAY_ITER_NEXT(pd->states, i, state, iter)
+     {
+        const char *_s, *_e;
+        int s, e = -999;
+        efl_ui_mi_state_sector_get(state, &_s, NULL);
+        efl_gfx_frame_controller_sector_get(vg, _s, &s, &s);
+        if (i + 1 < eina_array_count_get(pd->states)){
+             efl_ui_mi_state_sector_get(eina_array_data_get(pd->states,i + 1), &_e, NULL);
+             if (_e) efl_gfx_frame_controller_sector_get(vg, _e, &e, &e);
+        }
+        if (s <= frame && frame < e){
+             return state;
+        }
+     }
+   return NULL;
+}
+
+double
+_get_current_progress_on_state(Eo* obj, int frame, Eo* state)
+{
+   Efl_Ui_Mi_Controller_Data *pd = efl_data_scope_safe_get(obj, MY_CLASS);
+   Efl_Ui_Mi_State *item_state;
+   Eina_Array_Iterator iter;
+   int i;
+   Eo *vg = efl_key_data_get(pd->anim, "vg_obj");
+
+   EINA_ARRAY_ITER_NEXT(pd->states, i, item_state, iter)
+     {
+        const char *_s, *_e;
+        int s, e = -999;
+        if (item_state == state)
+          {
+             efl_ui_mi_state_sector_get(state, &_s, NULL);
+             efl_gfx_frame_controller_sector_get(vg, _s, &s, &s);
+             if (i + 1 < eina_array_count_get(pd->states))
+               {
+                  efl_ui_mi_state_sector_get(eina_array_data_get(pd->states,i + 1), &_e, NULL);
+                  if (_e) efl_gfx_frame_controller_sector_get(vg, _e, &e, &e);
+                  else return 1.0;
+               }
+             else
+               return 1.0;
+
+             return ((double)frame - (double)s) / ((double)e - (double)s);
+          }
+     }
+   return 0.0;
+}
+
+static void
+_animation_playback_finished_cb(void *data, const Efl_Event *event)
+{
+   Eo* obj = data;
+   Efl_Ui_Mi_Controller_Data *pd = efl_data_scope_safe_get(obj, MY_CLASS);
+   if (!pd) return ;
+
+   Efl_Ui_Mi_State *cur_state = pd->current_state;
+   efl_event_callback_call(cur_state, EFL_UI_MI_STATE_EVENT_FEEDBACK_DONE, NULL);
+   if (pd->is_feedback_play && pd->repeat_mode != EFL_UI_MI_CONTROLLER_REPEAT_MODE_LOOP)
+     {
+        // Need to check direction
+        int min_frame = efl_ui_vg_animation_min_frame_get(event->object);
+        efl_ui_vg_animation_frame_set(event->object, min_frame);
+        pd->current_state =  _find_current_state(obj, min_frame);
+        efl_event_callback_call(pd->current_state, EFL_UI_MI_STATE_EVENT_ACTIVATE, NULL);
+     }
+   else
+     {
+        efl_event_callback_call(cur_state, EFL_UI_MI_STATE_EVENT_DEACTIVATE, NULL);
+
+        int cur_frame = efl_ui_vg_animation_frame_get(event->object);
+        efl_ui_vg_animation_frame_set(event->object, cur_frame + 1);
+        cur_state = _find_current_state(obj, cur_frame + 1);
+printf("pd->current_state : %p, %d\n", pd->current_state, _find_current_state(obj, cur_frame + 1));
+        if (cur_state)
+           pd->current_state = cur_state;
+        if (!pd->is_feedback_play)
+          efl_event_callback_call(pd->current_state, EFL_UI_MI_STATE_EVENT_ACTIVATE, NULL);
+        efl_event_callback_call(pd->current_state, EFL_UI_MI_STATE_EVENT_TRIGGER, NULL);
+
+     }
+
+}
+
 static void
 _animation_playback_progress_changed_cb(void *data, const Efl_Event *event)
 {
    Eo* obj = data;
    Efl_Ui_Mi_Controller_Data *pd = efl_data_scope_safe_get(obj, MY_CLASS);
-   if (!pd) return NULL;
+   if (!pd || !event->info) return;
 
-   Efl_Ui_Mi_State *cur_state = eina_array_data_get (pd->states, pd->cur_state_idx);
-   efl_event_callback_call(cur_state, EFL_UI_MI_STATE_EVENT_FEEDBACK, (double*)event->info);
+   Efl_Ui_Mi_State *cur_state = _find_current_state(obj, efl_ui_vg_animation_frame_get(event->object));
+   double progress = *(double*)event->info;
 
-   Efl_Ui_Mi_State *wild_state = efl_ui_mi_controller_state_get(obj, "*");
-   efl_event_callback_call(wild_state, EFL_UI_MI_STATE_EVENT_FEEDBACK, (double*)event->info);
-
-   double progress_value = *(double *)event->info;
-   if (progress_value == 1.0)
-     efl_event_callback_call(cur_state, EFL_UI_MI_STATE_EVENT_FEEDBACK_DONE, (double*)event->info);
+   if (progress != 0.0 && progress != 1.0)
+     {
+        if (pd->current_state != cur_state)
+          {
+             printf("Call Feedback done : %f\n", *(double*)event->info);
+             efl_event_callback_call(pd->current_state, EFL_UI_MI_STATE_EVENT_FEEDBACK_DONE, NULL);
+             if (!pd->is_feedback_play)
+               efl_event_callback_call(pd->current_state, EFL_UI_MI_STATE_EVENT_DEACTIVATE, NULL);
+             if (cur_state)
+               pd->current_state = cur_state;
+             if (!pd->is_feedback_play) {
+                  efl_event_callback_call(pd->current_state, EFL_UI_MI_STATE_EVENT_ACTIVATE, NULL);
+                  efl_event_callback_call(pd->current_state, EFL_UI_MI_STATE_EVENT_TRIGGER, NULL);
+             }
+          }
+        else
+          {
+             double progress = _get_current_progress_on_state(obj, efl_ui_vg_animation_frame_get(event->object), pd->current_state);
+             efl_event_callback_call(pd->current_state, EFL_UI_MI_STATE_EVENT_FEEDBACK, (double*)&progress);
+          }
+     }
 
    Eo *vg = efl_key_data_get(pd->anim, "vg_obj");
    Eina_Size2D size = efl_canvas_vg_object_default_min_get(vg);
@@ -414,10 +575,13 @@ _efl_ui_mi_controller_efl_canvas_group_group_add(Eo *obj, Efl_Ui_Mi_Controller_D
    pd->anim = efl_add(EFL_UI_VG_ANIMATION_CLASS, obj);
    elm_widget_resize_object_set(obj, pd->anim);
 
+   efl_event_callback_add(pd->anim, EFL_PLAYER_EVENT_PLAYBACK_FINISHED, _animation_playback_finished_cb, obj);
    efl_event_callback_add(pd->anim, EFL_PLAYER_EVENT_PLAYBACK_PROGRESS_CHANGED, _animation_playback_progress_changed_cb, obj);
    efl_key_data_set(obj, "anim", pd->anim);
 
-   pd->cur_state_idx = 0;
+   //pd->cur_state_idx = 0;
+   pd->first_play = EINA_TRUE;
+   pd->is_feedback_play = EINA_FALSE;
 
    efl_event_callback_add(obj, EFL_GFX_ENTITY_EVENT_HINTS_CHANGED, _size_hint_event_cb, pd);
 }
