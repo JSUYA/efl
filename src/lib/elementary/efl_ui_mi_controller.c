@@ -501,7 +501,6 @@ _animation_playback_finished_cb(void *data, const Efl_Event *event)
         int cur_frame = efl_ui_vg_animation_frame_get(event->object);
         efl_ui_vg_animation_frame_set(event->object, cur_frame + 1);
         cur_state = _find_current_state(obj, cur_frame + 1);
-printf("pd->current_state : %p, %d\n", pd->current_state, _find_current_state(obj, cur_frame + 1));
         if (cur_state)
            pd->current_state = cur_state;
         if (!pd->is_feedback_play)
@@ -526,7 +525,6 @@ _animation_playback_progress_changed_cb(void *data, const Efl_Event *event)
      {
         if (pd->current_state != cur_state)
           {
-             printf("Call Feedback done : %f\n", *(double*)event->info);
              efl_event_callback_call(pd->current_state, EFL_UI_MI_STATE_EVENT_FEEDBACK_DONE, NULL);
              if (!pd->is_feedback_play)
                efl_event_callback_call(pd->current_state, EFL_UI_MI_STATE_EVENT_DEACTIVATE, NULL);
