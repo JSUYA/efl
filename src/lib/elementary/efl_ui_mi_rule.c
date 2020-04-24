@@ -183,9 +183,9 @@ _efl_ui_mi_rule_keypath_set(Eo *obj EINA_UNUSED, Efl_Ui_Mi_Rule_Data *pd, Eina_S
      pd->event_rect = evas_object_rectangle_add(e);
 
    evas_object_color_set(pd->event_rect, 0, 0, 0, 0);
-//#if DEBUG
+#if DEBUG
    evas_object_color_set(pd->event_rect, 128, 0, 0, 128);
-//#endif
+#endif
 
    efl_event_callback_add(pd->event_rect, EFL_EVENT_GESTURE_TAP, tap_gesture_cb, obj);
    efl_event_callback_add(pd->event_rect, EFL_EVENT_GESTURE_FLICK, flick_gesture_cb, obj);
@@ -392,7 +392,7 @@ _calculate_text_part(Efl_Ui_Mi_Rule_Data *pd, Eina_Rect r)
    Evas_Object *top = evas_object_top_get(e);
    evas_object_stack_below(pd->text_part, top);
    evas_object_geometry_get(pd->text_part, &x, &y, &w, &h);
-   evas_object_move(pd->text_part, r.pos.x, (r.pos.y + r.size.h/2) - (h/2));
+   evas_object_move(pd->text_part, (r.pos.x + r.size.w/2) - (w/2), (r.pos.y + r.size.h/2) - (h/2));
    evas_object_resize(pd->text_part, r.size.w, r.size.h);
 }
 
