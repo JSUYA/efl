@@ -303,7 +303,7 @@ _local_transform(Efl_VG *root, double w, double h, Vg_File_Data *vfd)
         int cw = w / 2;
         int ch = h / 2;
 
-        int scx = cw - cw;
+        int scx = cw - cx;
         int scy = ch - cy;
 
         scx *= min_scale;
