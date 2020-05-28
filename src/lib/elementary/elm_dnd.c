@@ -182,7 +182,8 @@ elm_drop_target_add(Evas_Object *obj, Elm_Sel_Format format,
    target->format = format;
 
    efl_event_callback_array_add(obj, drop_target_cb(), target);
-   _drop_event_register(obj); //this is ensuring that we are also supporting none widgets
+   if (!efl_isa(obj, EFL_UI_WIDGET_CLASS))
+     _drop_event_register(obj); //this is ensuring that we are also supporting none widgets
    if (!target_register)
      target_register = eina_hash_pointer_new(NULL);
    eina_hash_list_append(target_register, &obj, target);
@@ -417,7 +418,7 @@ _cont_obj_anim_start(void *data)
                _drag_anim_start(st);
              else
                {
-                  if (st->anim_tm)
+                  if (EINA_DBL_NONZERO(st->anim_tm))
                     {
                        // even if we don't manage the icons animation, we have
                        // to wait until it is finished before beginning drag.

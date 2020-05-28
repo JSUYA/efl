@@ -44,16 +44,20 @@
 #define ECORE_EVAS_CHECK(ee, ...) \
    if (!ECORE_MAGIC_CHECK(ee, ECORE_MAGIC_EVAS)) \
      { \
-        ECORE_MAGIC_FAIL(ee, ECORE_MAGIC_EVAS, __FUNCTION__); \
+        ECORE_MAGIC_FAIL(ee, ECORE_MAGIC_EVAS, __func__); \
         return __VA_ARGS__; \
      }
 
 #define ECORE_EVAS_CHECK_GOTO(_ee, _label) \
   if (!ECORE_MAGIC_CHECK(_ee, ECORE_MAGIC_EVAS)) \
     { \
-       ECORE_MAGIC_FAIL(_ee, ECORE_MAGIC_EVAS, __FUNCTION__); \
+       ECORE_MAGIC_FAIL(_ee, ECORE_MAGIC_EVAS, __func__); \
        goto _label; \
     }
+
+EAPI Eina_Error ecore_evas_no_matching_type;
+EAPI Eina_Error ecore_evas_no_selection;
+EAPI Eina_Error ecore_evas_request_replaced;
 
 EAPI Eina_Bool _ecore_evas_app_comp_sync = EINA_FALSE;
 EAPI int _ecore_evas_log_dom = -1;
@@ -2781,13 +2785,13 @@ ecore_evas_screen_dpi_get(const Ecore_Evas *ee, int *xdpi, int *ydpi)
 EAPI void
 ecore_evas_draw_frame_set(Ecore_Evas *ee EINA_UNUSED, Eina_Bool draw_frame EINA_UNUSED)
 {
-   WRN("Calling deprecated function %s (not implemented)", __FUNCTION__);
+   WRN("Calling deprecated function %s (not implemented)", __func__);
 }
 
 EAPI Eina_Bool
 ecore_evas_draw_frame_get(const Ecore_Evas *ee EINA_UNUSED)
 {
-   WRN("Calling deprecated function %s (not implemented)", __FUNCTION__);
+   WRN("Calling deprecated function %s (not implemented)", __func__);
    return EINA_FALSE;
 }
 
@@ -5486,7 +5490,7 @@ static Eina_Bool
 _deliver_cb(Ecore_Evas *ee, unsigned int seat, Ecore_Evas_Selection_Buffer buffer, const char *type, Eina_Rw_Slice *slice)
 {
    Ecore_Evas_Selection_Seat_Buffers *buffers;
-   Eina_Content *content;
+   Eina_Content *content = NULL;
    Eina_Content *converted = NULL;
    Eina_Bool result = EINA_FALSE;
 

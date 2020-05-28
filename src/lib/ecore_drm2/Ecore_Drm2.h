@@ -92,6 +92,8 @@ typedef struct _Ecore_Drm2_Context
                           unsigned int tv_usec, void *user_data);
    void (*page_flip_handler)(int fd, unsigned int sequence, unsigned int tv_sec,
                              unsigned int tv_usec, void *user_data);
+   void (*page_flip_handler2)(int fd, unsigned int sequence, unsigned int tv_sec,
+                              unsigned int tv_usec, unsigned int crtc_id, void *user_data);
 } Ecore_Drm2_Context;
 
 EAPI extern int ECORE_DRM2_EVENT_OUTPUT_CHANGED;
@@ -408,6 +410,18 @@ EAPI Eina_Bool ecore_drm2_device_vt_set(Ecore_Drm2_Device *device, int vt);
  * @since 1.19
  */
 EAPI Eina_Bool ecore_drm2_device_prefer_shadow(Ecore_Drm2_Device *device);
+
+/**
+ * Get the default depth & bpp from a given device
+ *
+ * @param device
+ * @param depth
+ * @param bpp
+ *
+ * @ingroup Ecore_Drm2_Device_Group
+ * @since 1.25
+ */
+EAPI void ecore_drm2_device_preferred_depth_get(Ecore_Drm2_Device *device, int *depth, int *bpp);
 
 /**
  * @defgroup Ecore_Drm2_Output_Group Drm output functions

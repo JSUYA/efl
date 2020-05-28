@@ -1010,13 +1010,13 @@ _elm_win_obj_intercept_lower(void *data, Evas_Object *obj EINA_UNUSED)
 static void
 _elm_win_obj_intercept_stack_above(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, Evas_Object *above EINA_UNUSED)
 {
-   INF("TODO: %s", __FUNCTION__);
+   INF("TODO: %s", __func__);
 }
 
 static void
 _elm_win_obj_intercept_stack_below(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, Evas_Object *below EINA_UNUSED)
 {
-   INF("TODO: %s", __FUNCTION__);
+   INF("TODO: %s", __func__);
 }
 
 static void
@@ -3745,12 +3745,12 @@ _elm_win_resize_objects_eval(Evas_Object *obj, Eina_Bool force_resize)
    maxh = sd->max_h;
 
    // Compatibility hack (for E)
-   if (sd->single_edje_content && !wx && !wy)
+   if (sd->single_edje_content && EINA_DBL_EQ(wx, 0) && EINA_DBL_EQ(wy, 0))
      wx = wy = 1;
 
-   if (!wx) maxw = minw;
+   if (EINA_DBL_EQ(wx, 0)) maxw = minw;
    if (maxw < 1) maxw = 32767;
-   if (!wy) maxh = minh;
+   if (EINA_DBL_EQ(wy, 0)) maxh = minh;
    if (maxh < 1) maxh = 32767;
    if (maxw < minw) maxw = minw;
    if (maxh < minh) maxh = minh;
@@ -9160,45 +9160,45 @@ elm_win_available_profiles_set(Elm_Win *obj, const char **profiles, unsigned int
 EAPI void
 elm_win_fake_canvas_set(Evas_Object *obj EINA_UNUSED, Ecore_Evas *oee EINA_UNUSED)
 {
-   ERR("Calling deprecrated function '%s'", __FUNCTION__);
+   ERR("Calling deprecrated function '%s'", __func__);
 }
 
 EAPI void
 elm_win_name_set(Evas_Object *obj, const char *name)
 {
-   ERR("Calling deprecrated function '%s'", __FUNCTION__);
+   ERR("Calling deprecrated function '%s'", __func__);
    efl_ui_win_name_set(obj, name);
 }
 
 EAPI void
 elm_win_type_set(Evas_Object *obj, Elm_Win_Type type)
 {
-   ERR("Calling deprecrated function '%s'", __FUNCTION__);
+   ERR("Calling deprecrated function '%s'", __func__);
    efl_ui_win_type_set(obj, _elm_win_type_to_efl_ui_win_type(type));
 }
 
 EAPI void
 elm_win_teamwork_uri_preload(Efl_Ui_Win *obj EINA_UNUSED, const char *uri EINA_UNUSED)
 {
-   ERR("Calling deprecrated function '%s'", __FUNCTION__);
+   ERR("Calling deprecrated function '%s'", __func__);
 }
 
 EAPI void
 elm_win_teamwork_uri_show(Efl_Ui_Win *obj EINA_UNUSED, const char *uri EINA_UNUSED)
 {
-   ERR("Calling deprecrated function '%s'", __FUNCTION__);
+   ERR("Calling deprecrated function '%s'", __func__);
 }
 
 EAPI void
 elm_win_teamwork_uri_hide(Efl_Ui_Win *obj EINA_UNUSED)
 {
-   ERR("Calling deprecrated function '%s'", __FUNCTION__);
+   ERR("Calling deprecrated function '%s'", __func__);
 }
 
 EAPI void
 elm_win_teamwork_uri_open(Efl_Ui_Win *obj EINA_UNUSED, const char *uri EINA_UNUSED)
 {
-   ERR("Calling deprecrated function '%s'", __FUNCTION__);
+   ERR("Calling deprecrated function '%s'", __func__);
 }
 
 /* What here follows is code that implements the glue between ecore evas and efl_ui* side */

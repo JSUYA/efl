@@ -3243,6 +3243,7 @@ _edje_vector_load_lottie(Edje *ed, Edje_Real_Part *ep, const char *key)
           {
              lottie_data[lottie_data_len] = '\0';
              file = eina_file_virtualize(NULL, lottie_data, lottie_data_len + 1, EINA_FALSE);
+             if (efl_file_loaded_get(ep->object)) efl_file_unload(ep->object);
              efl_file_simple_mmap_load(ep->object, file, NULL);
 
              if (ep->typedata.vector->lottie_virtual_file)
@@ -3331,10 +3332,11 @@ _edje_vector_recalc_apply(Edje *ed, Edje_Real_Part *ep, Edje_Calc_Params *p3 EIN
         root = efl_duplicate(src_root);
 
         if (!efl_gfx_path_interpolate(root, src_root, dest_root, pos))
-          {
-             ERR("Can't interpolate check the svg file");
-          }
+          ERR("Can't interpolate check the svg file");
+
         efl_canvas_vg_object_root_node_set(ep->object, root);
+
+        efl_unref(root);
         efl_unref(src_root);
         efl_unref(dest_root);
      }
@@ -4055,8 +4057,9 @@ _edje_part_recalc(Edje *ed, Edje_Real_Part *ep, int flags, Edje_Calc_Params *sta
                }
              ERR("Circular dependency in the group '%s' : %s",
                  ed->group, depends_path);
-             eina_array_free(part_array);
           }
+
+        eina_array_free(part_array);
 #endif
         return;
      }

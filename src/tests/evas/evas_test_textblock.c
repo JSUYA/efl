@@ -3826,15 +3826,15 @@ EFL_START_TEST(evas_textblock_set_get)
    fail_if(strcmp(evas_object_textblock_replace_char_get(tb), "ש"));
 
    evas_object_textblock_valign_set(tb, -1.0);
-   fail_if(evas_object_textblock_valign_get(tb) != 0.0);
+   fail_if(EINA_DBL_NONZERO(evas_object_textblock_valign_get(tb)));
    evas_object_textblock_valign_set(tb, 0.0);
-   fail_if(evas_object_textblock_valign_get(tb) != 0.0);
+   fail_if(EINA_DBL_NONZERO(evas_object_textblock_valign_get(tb)));
    evas_object_textblock_valign_set(tb, 0.432);
-   fail_if(evas_object_textblock_valign_get(tb) != 0.432);
+   fail_if(!EINA_DBL_EQ(evas_object_textblock_valign_get(tb), 0.432));
    evas_object_textblock_valign_set(tb, 1.0);
-   fail_if(evas_object_textblock_valign_get(tb) != 1.0);
+   fail_if(!EINA_DBL_EQ(evas_object_textblock_valign_get(tb), 1.0));
    evas_object_textblock_valign_set(tb, 1.5);
-   fail_if(evas_object_textblock_valign_get(tb) != 1.0);
+   fail_if(!EINA_DBL_EQ(evas_object_textblock_valign_get(tb), 1.0));
 
    evas_object_textblock_bidi_delimiters_set(tb, ",.|");
    fail_if(strcmp(evas_object_textblock_bidi_delimiters_get(tb), ",.|"));
@@ -4925,6 +4925,7 @@ EFL_START_TEST(efl_canvas_textblock_style)
    START_EFL_CANVAS_TEXTBLOCK_TEST();
    unsigned char r, g, b, a;
    const char *style;
+   Eina_Size2D size1, size2;
 
    efl_text_password_set(txt, EINA_FALSE);
    efl_text_underline_type_set(txt, EFL_TEXT_STYLE_UNDERLINE_TYPE_DOUBLE);
@@ -4994,6 +4995,15 @@ EFL_START_TEST(efl_canvas_textblock_style)
    ck_assert_int_eq(g, 0x59);
    ck_assert_int_eq(b, 0x6C);
    ck_assert_int_eq(a, 0xFF);
+
+   // Style Apply taking 
+   efl_text_set(txt,"A");
+   efl_canvas_textblock_style_apply(txt,"font_size=2");
+   size1 = efl_canvas_textblock_size_native_get(txt);
+   efl_canvas_textblock_style_apply(txt,"font_size=20");
+   size2 = efl_canvas_textblock_size_native_get(txt);
+   ck_assert(size1.w < size2.w);
+   ck_assert(size1.h < size2.h);
 
    END_EFL_CANVAS_TEXTBLOCK_TEST();
 }

@@ -177,7 +177,7 @@ else
 endif
 elementary_test = executable('elementary_test',
         elementary_test_src,
-        dependencies: [elementary] + elementary_deps + elementary_pub_deps,
+        dependencies: [elementary, intl] + elementary_deps + elementary_pub_deps,
         install: true,
         c_args : package_c_args + [
           '-Delementary_test_BIN_DIR="'+dir_bin+'"',
@@ -189,7 +189,7 @@ elementary_test = executable('elementary_test',
 
 library('elementary_test',
         elementary_test_src,
-        dependencies: [elementary] + elementary_deps + elementary_pub_deps,
+        dependencies: [elementary, intl] + elementary_deps + elementary_pub_deps,
         install: false,
         c_args : package_c_args + [
           '-Delementary_test_BIN_DIR="'+dir_bin+'"',
@@ -205,7 +205,7 @@ elementary_config_src = [
 
 elementary_config = executable('elementary_config',
         elementary_config_src,
-        dependencies: [elementary] + elementary_deps + elementary_pub_deps,
+        dependencies: [elementary, intl] + elementary_deps + elementary_pub_deps,
         install: true,
         c_args : package_c_args,
         link_args: link_args
@@ -218,7 +218,7 @@ if sys_windows == false
 
   elementary_quicklaunch = executable('elementary_quicklaunch',
           elementary_quicklaunch_src,
-          dependencies: [elementary] + elementary_deps + elementary_pub_deps,
+          dependencies: [elementary, intl] + elementary_deps + elementary_pub_deps,
           install: true,
           c_args : package_c_args,
           link_args: link_args
@@ -231,17 +231,22 @@ elementary_codegen_src = [
 
 elementary_codegen = executable('elementary_codegen',
         elementary_codegen_src,
-        dependencies: [elementary] + elementary_deps + elementary_pub_deps,
+        dependencies: [elementary, intl] + elementary_deps + elementary_pub_deps,
         install: true,
         c_args : package_c_args,
         link_args: link_args
 )
 
+asan_option =[]
+if get_option('b_sanitize') == 'address'
+  asan_option= 'ASAN_OPTIONS=detect_leaks=0'
+endif
+
 if meson.is_cross_build()
   elementary_codegen_exe = [find_program('elementary_codegen', native: true)]
 else
   env = find_program('env', native: true)
-  elementary_codegen_exe = [env, 'EFL_RUN_IN_TREE=1', elementary_codegen.full_path()]
+  elementary_codegen_exe = [env, asan_option, 'EFL_RUN_IN_TREE=1', elementary_codegen.full_path()]
 endif
 
 elm_prefs_cc_src = [
@@ -255,7 +260,7 @@ elm_prefs_cc_src = [
 
 elm_prefs_cc = executable('elm_prefs_cc',
         elm_prefs_cc_src,
-        dependencies: [elementary] + elementary_deps + elementary_pub_deps,
+        dependencies: [elementary, intl] + elementary_deps + elementary_pub_deps,
         install: true,
         c_args : package_c_args,
         link_args: link_args
@@ -267,7 +272,7 @@ if meson.is_cross_build()
   elm_prefs_cc_exe = [_elm_prefs_cc]
 else
   env = find_program('env', native: true)
-  elm_prefs_cc_exe = [env, 'EFL_RUN_IN_TREE=1', elm_prefs_cc.full_path()]
+  elm_prefs_cc_exe = [env, asan_option, 'EFL_RUN_IN_TREE=1', elm_prefs_cc.full_path()]
 endif
 
 if sys_windows == false
@@ -277,7 +282,7 @@ if sys_windows == false
 
   elementary_run = executable('elementary_run',
           elementary_run_src,
-          dependencies: [elementary] + elementary_deps + elementary_pub_deps,
+          dependencies: [elementary, intl] + elementary_deps + elementary_pub_deps,
           install: true,
           c_args : package_c_args,
           link_args: link_args
@@ -297,7 +302,7 @@ elementary_perf_src = [
 
 elementary_perf = executable('elementary_perf',
         elementary_perf_src,
-        dependencies: [elementary] + elementary_deps + elementary_pub_deps,
+        dependencies: [elementary, intl] + elementary_deps + elementary_pub_deps,
         install: true,
         c_args : package_c_args + [
           '-Delementary_test_BIN_DIR="'+dir_bin+'"',
