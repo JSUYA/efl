@@ -9,8 +9,6 @@ typedef struct _Efl_Canvas_Vg_Gradient_Data         Efl_Canvas_Vg_Gradient_Data;
 typedef struct _Efl_Canvas_Vg_Interpolation         Efl_Canvas_Vg_Interpolation;
 typedef struct _Efl_Canvas_Vg_Object_Data           Efl_Canvas_Vg_Object_Data;
 
-typedef enum _Efl_Gfx_Vg_Value_Provider_Change_Flag Efl_Gfx_Vg_Value_Provider_Change_Flag;
-
 typedef struct _Vg_Cache
 {
    Eina_Hash             *vfd_hash;
@@ -37,6 +35,7 @@ typedef struct _Vg_User_Entry
 {
    int                   w; // current surface width
    int                   h; // current surface height
+   Eina_Rect             path_bounds;
    Efl_VG               *root;
 } Vg_User_Entry;
 
@@ -130,16 +129,6 @@ struct _Efl_Canvas_Vg_Interpolation
    Eina_Point_3D scale;
    Eina_Point_3D skew;
 };
-
-enum _Efl_Gfx_Vg_Value_Provider_Change_Flag
-{
-   EFL_GFX_VG_VALUE_PROVIDER_CHANGE_FLAG_NONE = 0,
-   EFL_GFX_VG_VALUE_PROVIDER_CHANGE_FLAG_FILL_COLOR = 2,
-   EFL_GFX_VG_VALUE_PROVIDER_CHANGE_FLAG_STROKE_COLOR = 4,
-   EFL_GFX_VG_VALUE_PROVIDER_CHANGE_FLAG_STROKE_WIDTH = 8,
-   EFL_GFX_VG_VALUE_PROVIDER_CHANGE_FLAG_TRANSFORM_MATRIX = 16
-};
-Efl_Gfx_Vg_Value_Provider_Change_Flag efl_gfx_vg_value_provider_changed_flag_get(Eo *obj);
 
 void                        evas_cache_vg_init(void);
 void                        evas_cache_vg_shutdown(void);
